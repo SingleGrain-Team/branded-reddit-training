@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Branded Reddit Training - Single Grain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Single Grain dark theme (default) */
+  --bg:#111111;--surface:#1c1c1c;--surface2:#252525;--surface3:#2e2e2e;
+  --border:#2f2f2f;--border2:#3d3d3d;
+  --text:#f0eeea;--text2:#a8a49e;--text3:#6b6762;
+  --accent:#e8622a;--accent-bg:rgba(232,98,42,0.12);--accent-dark:#c44e1e;--accent-light:#f07a45;
+  --blue:#4a9eff;--blue-bg:rgba(74,158,255,0.1);
+  --green:#3ecf6e;--green-bg:rgba(62,207,110,0.1);
+  --red:#f05252;--red-bg:rgba(240,82,82,0.1);
+  --amber:#f0a030;--amber-bg:rgba(240,160,48,0.1);
+  --aeo:#7c3aed;--aeo-bg:rgba(124,58,237,0.1);--aeo-border:rgba(124,58,237,0.25);
+  --radius:8px;--radius-sm:5px;
+}
+[data-theme="light"]{
+  --bg:#f8f7f5;--surface:#ffffff;--surface2:#f2f1ee;--surface3:#e8e6e1;
+  --border:#e0ddd8;--border2:#cbc8c2;
+  --text:#1a1816;--text2:#5a5650;--text3:#9a9590;
+  --accent:#e8622a;--accent-bg:rgba(232,98,42,0.08);--accent-dark:#c44e1e;--accent-light:#f07a45;
+  --blue:#1a6fd4;--blue-bg:rgba(26,111,212,0.08);
+  --green:#1a7a3c;--green-bg:rgba(26,122,60,0.08);
+  --red:#c0392b;--red-bg:rgba(192,57,43,0.08);
+  --amber:#a05e10;--amber-bg:rgba(160,94,16,0.08);
+  --aeo:#6d28d9;--aeo-bg:rgba(109,40,217,0.07);--aeo-border:rgba(109,40,217,0.2);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+.name-gate{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(6px)}
+.name-gate-card{background:var(--surface);border-radius:var(--radius);padding:36px 40px;max-width:420px;width:90%;border:1px solid var(--border2);box-shadow:0 24px 80px rgba(0,0,0,0.7)}
+.name-gate-logo{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:7px}
+
+.name-gate-title{font-size:24px;font-weight:700;margin-bottom:8px;letter-spacing:-0.03em;color:var(--text)}
+.name-gate-desc{font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.65}
+.name-gate-input{width:100%;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:11px 14px;font-size:15px;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface2);outline:none;margin-bottom:12px;transition:border-color 0.15s}
+.name-gate-input::placeholder{color:var(--text3)}
+.name-gate-input:focus{border-color:var(--accent)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:256px;min-width:256px;background:#161616;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{flex:1;padding:44px 52px;max-width:820px}
+.sidebar-header{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
+.sidebar-logo{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+
+.sidebar-title{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.35;letter-spacing:-0.01em}
+.sidebar-user{font-size:12px;color:var(--accent);margin-top:4px;font-weight:500}
+.sidebar-progress{padding:14px 20px;border-bottom:1px solid var(--border)}
+.progress-label{font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between;font-weight:600;letter-spacing:0.08em;text-transform:uppercase}
+.progress-bar{height:2px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.4s ease}
+.sidebar-nav{padding:8px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--text3);border-left:2px solid transparent;transition:all 0.15s;font-weight:400}
+.nav-item:hover{background:rgba(255,255,255,0.04);color:var(--text2)}
+.nav-item.active{background:var(--accent-bg);color:var(--text);border-left-color:var(--accent);font-weight:500}
+.nav-num{width:20px;height:20px;border-radius:4px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.nav-item.active .nav-num{background:var(--accent);color:white}
+.nav-item.completed .nav-num{background:rgba(62,207,110,0.15);color:var(--green)}
+.module-tag{display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);padding:0 0 14px;margin-bottom:0}
+.module-tag::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block}
+.module-title{font-size:32px;font-weight:800;line-height:1.15;margin-bottom:12px;letter-spacing:-0.04em;color:var(--text)}
+.module-desc{font-size:15px;color:var(--text2);margin-bottom:36px;line-height:1.65;max-width:580px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:14px}
+.card-title{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.info-block{border-left:2px solid var(--blue);background:var(--blue-bg);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:14px 16px;margin-bottom:12px;font-size:14px;line-height:1.65;color:var(--text)}
+.info-block.warn{border-left-color:var(--accent);background:var(--accent-bg)}
+.info-block.danger{border-left-color:var(--red);background:var(--red-bg)}
+.info-block strong{font-weight:600;display:block;margin-bottom:4px;color:var(--text)}
+.checklist{list-style:none}
+.checklist li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px;line-height:1.55}
+.checklist li:last-child{border-bottom:none}
+.check-box{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:4px;flex-shrink:0;margin-top:2px;cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.15s}
+.check-box.checked{background:var(--green);border-color:var(--green);color:#0a1a0f}
+.quiz-question{font-size:15px;font-weight:600;margin-bottom:16px;line-height:1.5;color:var(--text)}
+.quiz-options{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.quiz-opt{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:14px;line-height:1.5;background:var(--surface2);transition:all 0.15s;text-align:left;width:100%;font-family:'Inter',sans-serif;color:var(--text2)}
+.quiz-opt:hover:not(:disabled){background:var(--surface3);border-color:var(--border2);color:var(--text)}
+.quiz-opt.correct{background:rgba(62,207,110,0.08);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(240,82,82,0.08);border-color:var(--red);color:var(--red)}
+.quiz-opt.reveal{background:rgba(62,207,110,0.08);border-color:var(--green);color:var(--green)}
+.quiz-opt:disabled{cursor:default}
+.opt-letter{font-weight:700;font-size:11px;min-width:20px;height:20px;border-radius:4px;background:var(--surface3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.quiz-opt.correct .opt-letter{background:var(--green);color:#0a1a0f}
+.quiz-opt.wrong .opt-letter{background:var(--red);color:white}
+.quiz-explanation{display:none;background:var(--surface2);padding:12px 14px;font-size:13.5px;line-height:1.65;color:var(--text2);margin-top:6px;border-left:2px solid var(--border2);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.quiz-counter{font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-weight:500}
+.scenario-bubble{background:var(--surface2);padding:16px 18px;margin-bottom:16px;font-size:14px;line-height:1.65;border-left:2px solid var(--border2);border-radius:0 var(--radius) var(--radius) 0;color:var(--text2)}
+.scenario-user{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+textarea.response-input{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface2);resize:vertical;min-height:100px;outline:none;line-height:1.65;transition:border-color 0.15s}
+textarea.response-input::placeholder{color:var(--text3)}
+textarea.response-input:focus{border-color:var(--accent)}
+.ai-feedback{display:none;border-radius:var(--radius);padding:16px 18px;margin-top:12px;font-size:14px;line-height:1.65}
+.ai-feedback.loading{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.ai-feedback.done{background:var(--surface);border:1px solid var(--border)}
+.rewrite-pair{margin-bottom:18px}
+.rewrite-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.rewrite-label.bad{color:var(--red)}
+.rewrite-label.good{color:var(--green)}
+.rewrite-text{padding:12px 16px;font-size:14px;line-height:1.65;font-style:italic;color:var(--text2)}
+.rewrite-text.bad{background:var(--red-bg);border-left:2px solid var(--red);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.rewrite-text.good{background:var(--green-bg);border-left:2px solid var(--green);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 22px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em}
+.btn:hover{background:var(--surface3);color:var(--text);border-color:var(--border2)}
+.btn.primary{background:var(--accent);color:white;border-color:var(--accent);font-weight:600}
+.btn.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+.btn-row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:600px){.two-col{grid-template-columns:1fr}.sidebar{display:none}}
+.do-dont-item{display:flex;gap:8px;padding:9px 12px;border-radius:var(--radius-sm);font-size:13.5px;margin-bottom:5px;align-items:flex-start}
+.do-dont-item.do{background:rgba(62,207,110,0.07);border:1px solid rgba(62,207,110,0.15)}
+.do-dont-item.dont{background:rgba(240,82,82,0.07);border:1px solid rgba(240,82,82,0.15)}
+.do-dont-icon{font-weight:800;font-size:12px;min-width:14px;margin-top:2px}
+.do-dont-item.do .do-dont-icon{color:var(--green)}
+.do-dont-item.dont .do-dont-icon{color:var(--red)}
+table.ref{width:100%;border-collapse:collapse;font-size:13.5px}
+table.ref th{text-align:left;padding:9px 12px;background:var(--surface2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);border-bottom:1px solid var(--border)}
+table.ref td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;color:var(--text2)}
+table.ref tr:last-child td{border-bottom:none}
+.risk-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;letter-spacing:0.04em}
+.risk-high{background:rgba(240,82,82,0.12);color:var(--red);border:1px solid rgba(240,82,82,0.2)}
+.risk-med{background:rgba(240,160,48,0.12);color:var(--amber);border:1px solid rgba(240,160,48,0.2)}
+.risk-low{background:rgba(62,207,110,0.12);color:var(--green);border:1px solid rgba(62,207,110,0.2)}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:28px}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;cursor:pointer;transition:all 0.2s}
+.dash-card:hover{border-color:var(--border2);background:var(--surface2)}
+.dash-card.done{border-left:2px solid var(--green)}
+.dash-num{font-size:10px;color:var(--text3);margin-bottom:5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.dash-name{font-size:13.5px;font-weight:600;margin-bottom:8px;line-height:1.4;color:var(--text)}
+.dash-status{font-size:12px;font-weight:500}
+.dash-status.done{color:var(--green)}
+.dash-status.todo{color:var(--text3)}
+.module-panel{display:none}
+.module-panel.active{display:block}
+hr.divider{border:none;border-top:1px solid var(--border);margin:22px 0}
+.section-divider{border:none;border-top:1px solid var(--border);margin:28px 0}
+h3{font-size:15px;font-weight:600;margin-bottom:10px;margin-top:22px;color:var(--text)}
+h3:first-child{margin-top:0}
+p{margin-bottom:12px;font-size:14.5px;line-height:1.7;color:var(--text2)}
+ul.prose,ol.prose{padding-left:18px;margin-bottom:12px}
+ul.prose li,ol.prose li{font-size:14.5px;line-height:1.7;margin-bottom:5px;color:var(--text2)}
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}
+.score-row:last-child{border-bottom:none}
+.score-val{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:13px}
+.score-val.perfect{color:var(--green)}
+.score-val.good{color:var(--blue)}
+.score-val.needs-work{color:var(--amber)}
+/* AEO callout */
+.aeo-card{background:var(--aeo-bg);border:1px solid var(--aeo-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:14px;position:relative}
+.aeo-card::before{content:'AEO + LLM VISIBILITY';font-size:9px;font-weight:800;letter-spacing:0.12em;color:var(--aeo);display:block;margin-bottom:10px;font-family:'JetBrains Mono',monospace}
+.aeo-card p{color:var(--text2);margin-bottom:8px;font-size:14px}
+.aeo-card p:last-child{margin-bottom:0}
+.aeo-card strong{color:var(--text);font-weight:600}
+.aeo-signals{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.aeo-signal{font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;background:var(--aeo-bg);border:1px solid var(--aeo-border);color:var(--aeo);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
+/* Theme toggle */
+.theme-toggle{background:none;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;color:var(--text3);font-size:13px;transition:all 0.15s;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.04em;margin-top:10px;width:100%}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle-icon{font-size:14px;line-height:1}
+/* Light mode sidebar */
+[data-theme="light"] .sidebar{background:#f4f3f0}
+[data-theme="light"] .name-gate{background:rgba(0,0,0,0.5)}
+</style>
+</head>
+<body>
+<div class="name-gate" id="name-gate">
+  <div class="name-gate-card">
+    <div class="name-gate-logo"><svg width="14" height="16" viewBox="0 0 38 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M19 0C19 0 33 10 33 24C33 31.7 26.7 38 19 38C11.3 38 5 31.7 5 24C5 17 10 11 10 11C10 11 11 18 15 21C15 21 13 16 19 10C19 10 17 20 22 23C22 23 24 18 19 0Z" fill="url(#sg-grad-n)"/><defs><linearGradient id="sg-grad-n" x1="19" y1="0" x2="19" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#f5a623"/><stop offset="1" stop-color="#e8622a"/></linearGradient></defs></svg>Single Grain</div>
+    <div class="name-gate-title">Branded Reddit Training</div>
+    <div class="name-gate-desc">Seven modules covering branded Reddit work: AMAs, brand voice, subreddit management, reputation defense, and more. Enter your name to get started.</div>
+    <input class="name-gate-input" type="text" id="name-input" placeholder="Your full name" autocomplete="name">
+    <button class="btn primary" style="width:100%" onclick="startTraining()">Start training</button>
+  </div>
+</div>
+
+<div class="app">
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo"><svg width="14" height="16" viewBox="0 0 38 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M19 0C19 0 33 10 33 24C33 31.7 26.7 38 19 38C11.3 38 5 31.7 5 24C5 17 10 11 10 11C10 11 11 18 15 21C15 21 13 16 19 10C19 10 17 20 22 23C22 23 24 18 19 0Z" fill="url(#sg-grad-s)"/><defs><linearGradient id="sg-grad-s" x1="19" y1="0" x2="19" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#f5a623"/><stop offset="1" stop-color="#e8622a"/></linearGradient></defs></svg>Single Grain</div>
+    <div class="sidebar-title">Branded Reddit Training</div>
+    <div class="sidebar-user" id="sidebar-user"></div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
+      <span class="theme-toggle-icon" id="theme-icon">&#9788;</span>
+      <span id="theme-label">Light mode</span>
+    </button>
+  </div>
+  <div class="sidebar-progress">
+    <div class="progress-label"><span>Progress</span><span id="progress-text">0 / 7 complete</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div class="sidebar-nav">
+    <button class="nav-item active" onclick="showModule(0)" id="nav-0"><div class="nav-num" id="navnum-0">0</div><span>Overview</span></button>
+    <button class="nav-item" onclick="showModule(1)" id="nav-1"><div class="nav-num" id="navnum-1">1</div><span>Branded Reddit 101</span></button>
+    <button class="nav-item" onclick="showModule(2)" id="nav-2"><div class="nav-num" id="navnum-2">2</div><span>AMA Mastery</span></button>
+    <button class="nav-item" onclick="showModule(3)" id="nav-3"><div class="nav-num" id="navnum-3">3</div><span>Brand Voice</span></button>
+    <button class="nav-item" onclick="showModule(4)" id="nav-4"><div class="nav-num" id="navnum-4">4</div><span>Subreddit Management</span></button>
+    <button class="nav-item" onclick="showModule(5)" id="nav-5"><div class="nav-num" id="navnum-5">5</div><span>Pinned FAQ &amp; Wiki</span></button>
+    <button class="nav-item" onclick="showModule(6)" id="nav-6"><div class="nav-num" id="navnum-6">6</div><span>Reputation &amp; Crisis</span></button>
+    <button class="nav-item" onclick="showModule(7)" id="nav-7"><div class="nav-num" id="navnum-7">7</div><span>Contests &amp; Giveaways</span></button>
+  </div>
+</nav>
+<main class="main">
+<div class="module-panel active" id="module-0">
+  <div class="module-tag">Single Grain Internal</div>
+  <h1 class="module-title">Branded Reddit Training</h1>
+  <p class="module-desc">Seven modules covering the full spectrum of branded Reddit work. Work through them in order, or jump to what you need.</p>
+  <div class="dash-grid" id="dash-grid"></div>
+  <div class="card">
+    <div class="card-title">Before you start</div>
+    <div class="info-block warn"><strong>Branded Reddit is high-stakes work.</strong>When a non-branded post goes wrong, the thread gets ignored. When a branded post goes wrong, the brand gets dragged publicly and sometimes permanently.</div>
+    <div class="info-block danger"><strong>The firewall rule.</strong>Branded and non-branded Reddit activity must never overlap. Never use a brand account to upvote, comment on, or amplify non-branded seeded content. This is non-negotiable.</div>
+  </div>
+  <div class="card" style="border-color:var(--aeo-border);background:var(--aeo-bg)">
+    <div style="font-size:9px;font-weight:800;letter-spacing:0.12em;color:var(--aeo);margin-bottom:10px;font-family:'JetBrains Mono',monospace">AEO + LLM VISIBILITY</div>
+    <p style="font-size:14px;margin-bottom:6px;color:var(--text2)"><strong style="color:var(--text)">Why Reddit = LLM visibility:</strong> AI models (ChatGPT, Perplexity, Gemini, Claude) pull heavily from Reddit when generating brand recommendations. Branded Reddit work directly improves how clients appear in AI-generated answers — and Single Grain's ability to execute it is a core differentiator.</p>
+    <p style="font-size:14px;margin-bottom:0;color:var(--text2)">Each module includes an AEO callout showing how that tactic translates into LLM visibility. This is the angle that turns a Reddit retainer into a strategic conversation with senior buyers.</p>
+  </div>
+  <div class="btn-row"><button class="btn primary" onclick="showModule(1)">Start Module 1</button></div>
+</div>
+<div class="module-panel" id="module-1">
+  <div class="module-tag">Module 1</div>
+  <h1 class="module-title">Branded Reddit 101</h1>
+  <p class="module-desc">The foundation. What branded Reddit means, why the stakes are higher, and the framework we use to scope and sell it.</p>
+  <div class="card">
+    <div class="card-title">Branded vs. non-branded</div>
+    <p>Non-branded Reddit is about participation. A contributor persona posts genuine content with no visible brand affiliation. Branded Reddit is about representation. The company, product, or spokesperson is visible. That shift changes everything: your preparation, your tone, your risk flags, and how you escalate.</p>
+    <div class="two-col">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Non-branded</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Lower risk profile</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Easier to staff</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Right entry point for new clients</div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Branded</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Public brand exposure</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Requires direct client access</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Higher approval threshold</div>
+      </div>
+    </div>
+    <div class="info-block" style="margin-top:12px;"><strong>Client maturity signal.</strong>New Reddit clients should almost always start non-branded. Branded tactics are introduced once credibility is established and you have the kind of client relationship that allows you to move fast on approvals.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">The two axes</div>
+    <p>Every branded tactic sits on two axes. The first is branded vs. non-branded, which reflects who is visible. The second is proactive vs. reactive, which reflects who controls the timing.</p>
+    <table class="ref">
+      <tr><th></th><th>Proactive</th><th>Reactive</th></tr>
+      <tr><td><strong>Branded</strong></td><td>AMAs, announcements, subreddit management, content creation</td><td>Mention response, reputation defense, crisis management</td></tr>
+      <tr><td><strong>Non-branded</strong></td><td>Thought leadership posts, data drops, AEO content</td><td>Competitor thread interception, trend newsjacking</td></tr>
+    </table>
+    <div class="info-block warn" style="margin-top:14px;"><strong>Reactive work cannot be batched.</strong>If reactive response is not scoped and staffed for speed, it either gets dropped or burns out the people doing it. Always clarify with the client whether reactive response is included before activating.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">The firewall</div>
+    <div class="info-block danger"><strong>Branded and non-branded must never touch.</strong>Do not use a brand account to upvote or amplify non-branded seeded content. Do not reference non-branded tactics in client-facing communications. Do not let both activities happen in the same subreddit thread. If a client asks about non-branded work in a branded context, redirect the conversation.</div>
+  </div>
+  <div class="aeo-card">
+    <p><strong>Why this sells:</strong> When a buyer asks ChatGPT, Perplexity, or Gemini "what's the best [category] tool," LLMs pull heavily from Reddit threads. A brand with zero Reddit footprint is invisible in those answers. One with an established branded presence, positive community sentiment, and authentic engagement has a measurable advantage in AI-generated recommendations.</p>
+    <p>The branded vs. non-branded distinction matters here for AEO. LLMs weight attributable, official-source content more heavily than anonymous posts. Branded Reddit builds the kind of named, authoritative content that AI systems can actually cite by brand.</p>
+    <div class="aeo-signals"><span class="aeo-signal">LLM brand citations</span><span class="aeo-signal">Reddit source weighting</span><span class="aeo-signal">Sentiment signals</span></div>
+  </div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:16px;">Knowledge check</div>
+<div id="q1-1-wrap" style="margin-top:0">
+<div class="quiz-counter">Question 1 of 5</div>
+<div class="quiz-question">A new client has never been active on Reddit but has strong brand recognition in their category. What do you recommend?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q1-1',this,false)"><span class="opt-letter">A</span>Start with branded subreddit creation. They have the brand equity to pull it off.</button>
+<button class="quiz-opt" onclick="answerQ('q1-1',this,false)"><span class="opt-letter">B</span>Run an AMA immediately to generate buzz around their Reddit entry.</button>
+<button class="quiz-opt" onclick="answerQ('q1-1',this,true)"><span class="opt-letter">C</span>Start non-branded. Build credibility first, then introduce branded tactics once the relationship supports fast approvals.</button>
+<button class="quiz-opt" onclick="answerQ('q1-1',this,false)"><span class="opt-letter">D</span>It depends entirely on the size of their social media following.</button>
+</div>
+<div class="quiz-explanation" id="q1-1-exp">Brand equity on other channels does not transfer to Reddit. Communities here are skeptical of brands that show up without any history. Non-branded work first builds the ecosystem of credibility that makes branded tactics land later. The relationship requirement for branded work is also about the client being able to approve responses quickly, and that trust takes time to build.</div>
+</div>
+<div id="q1-2-wrap" style="display:none;margin-top:20px">
+<div class="quiz-counter">Question 2 of 5</div>
+<div class="quiz-question">A client's branded account manager sees a non-branded seeded post getting good traction. They want to upvote it from the brand account. What do you tell them?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q1-2',this,false)"><span class="opt-letter">A</span>It's fine as long as the upvote is not visible to other users.</button>
+<button class="quiz-opt" onclick="answerQ('q1-2',this,true)"><span class="opt-letter">B</span>Absolutely not. This breaks the firewall, risks account bans, and could expose both streams to scrutiny.</button>
+<button class="quiz-opt" onclick="answerQ('q1-2',this,false)"><span class="opt-letter">C</span>Only if the post does not mention the brand by name.</button>
+<button class="quiz-opt" onclick="answerQ('q1-2',this,false)"><span class="opt-letter">D</span>It's fine as a one-time exception if the content is genuinely good.</button>
+</div>
+<div class="quiz-explanation" id="q1-2-exp">The firewall is absolute with no exceptions. If Reddit detects the connection between branded and non-branded streams (and communities are surprisingly good at spotting this), both streams become suspect. The brand account could be banned, the non-branded posts could be flagged as astroturfing, and the client relationship takes serious damage. Escalate to your manager if a client ever pushes back on this rule.</div>
+</div>
+<div id="q1-3-wrap" style="display:none;margin-top:20px">
+<div class="quiz-counter">Question 3 of 5</div>
+<div class="quiz-question">Which of the following is a reactive branded tactic?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q1-3',this,false)"><span class="opt-letter">A</span>Building and launching a branded subreddit</button>
+<button class="quiz-opt" onclick="answerQ('q1-3',this,false)"><span class="opt-letter">B</span>Writing a Reddit-native case study post</button>
+<button class="quiz-opt" onclick="answerQ('q1-3',this,true)"><span class="opt-letter">C</span>Responding to a negative thread where the brand is being criticized</button>
+<button class="quiz-opt" onclick="answerQ('q1-3',this,false)"><span class="opt-letter">D</span>Developing a 30-day content calendar for a brand sub</button>
+</div>
+<div class="quiz-explanation" id="q1-3-exp">Reactive tactics are triggered by what is already happening on Reddit. You do not control the timing. Reputation defense, crisis response, mention monitoring, and competitor thread management are all reactive. Everything else in this list is planned in advance and belongs on a content calendar. Those are proactive tactics.</div>
+</div>
+<div id="q1-4-wrap" style="display:none;margin-top:20px">
+<div class="quiz-counter">Question 4 of 5</div>
+<div class="quiz-question">A client running both branded and non-branded Reddit asks you to reference one of their non-branded seeded posts in the brand account's AMA responses as 'something a community member shared.' What's the right call?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q1-4',this,false)"><span class="opt-letter">A</span>It's fine. The brand is not directly upvoting or interacting with the post.</button>
+<button class="quiz-opt" onclick="answerQ('q1-4',this,false)"><span class="opt-letter">B</span>It depends on how organically worded the reference is.</button>
+<button class="quiz-opt" onclick="answerQ('q1-4',this,true)"><span class="opt-letter">C</span>This breaks the firewall. Referencing non-branded content from a brand account crosses the streams and creates astroturfing risk.</button>
+<button class="quiz-opt" onclick="answerQ('q1-4',this,false)"><span class="opt-letter">D</span>It's acceptable if the non-branded post was not written by the agency.</button>
+</div>
+<div class="quiz-explanation" id="q1-4-exp">Any interaction between the branded account and non-branded seeded content breaks the firewall, including references, quotes, or indirect amplification. If someone traces the connection between the brand account and what turned out to be a planted post, the reputational damage can be severe. Keep the two streams completely separate at all times.</div>
+</div>
+<div id="q1-5-wrap" style="display:none;margin-top:20px">
+<div class="quiz-counter">Question 5 of 5</div>
+<div class="quiz-question">Which scenario is the strongest signal that a client is ready to move from non-branded to branded Reddit tactics?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q1-5',this,false)"><span class="opt-letter">A</span>The client has a large Instagram following and wants to expand their social presence.</button>
+<button class="quiz-opt" onclick="answerQ('q1-5',this,false)"><span class="opt-letter">B</span>It has been six months since they signed and the retainer is up for renewal.</button>
+<button class="quiz-opt" onclick="answerQ('q1-5',this,true)"><span class="opt-letter">C</span>Non-branded posts are performing well, the client relationship is strong, and they can turn around approvals same day.</button>
+<button class="quiz-opt" onclick="answerQ('q1-5',this,false)"><span class="opt-letter">D</span>The client wants to run an AMA and has a founder willing to participate.</button>
+</div>
+<div class="quiz-explanation" id="q1-5-exp">The readiness signal is a combination of Reddit traction and operational trust. Non-branded performance shows the audience exists. A strong client relationship means they understand Reddit norms. Same-day approvals are critical because branded Reddit sometimes needs a fast response. A willing founder is great but not enough on its own without the other conditions in place.</div>
+</div>
+<div class="btn-row"><button class="btn primary" id="m1-next" onclick="completeModule(1)" style="display:none">Next module</button></div>
+</div>
+<div class="module-panel" id="module-2">
+  <div class="module-tag">Module 2</div>
+  <h1 class="module-title">AMA Mastery</h1>
+  <p class="module-desc">AMAs are Reddit's most powerful branded format and its most unforgiving. This module covers what they achieve, how to set them up, and how to handle anything the community throws at you.</p>
+  <div class="card">
+    <div class="card-title">What an AMA achieves</div>
+    <p>An AMA (Ask Me Anything) is a live, open Q&amp;A session where a real person, typically a founder, executive, or domain expert, answers questions from the Reddit community in real time. No other branded content format delivers what a well-run AMA can.</p>
+    <div class="do-dont-item do"><span class="do-dont-icon">+</span><span><strong>Direct community trust.</strong> A founder who handles tough questions gracefully earns more credibility than any paid media spend.</span></div>
+    <div class="do-dont-item do" style="margin-top:6px;"><span class="do-dont-icon">+</span><span><strong>Organic content velocity.</strong> A great AMA generates dozens of shareable moments and can drive significant traffic, coverage, and citations.</span></div>
+    <div class="do-dont-item do" style="margin-top:6px;"><span class="do-dont-icon">+</span><span><strong>AEO and SEO lift.</strong> AMA threads frequently appear in Google results and AI Overview citations, especially for branded and founder-name queries.</span></div>
+    <div class="do-dont-item do" style="margin-top:6px;"><span class="do-dont-icon">+</span><span><strong>Audience intelligence.</strong> The questions people ask reveal what the market actually wants to know, which is invaluable for content strategy and positioning.</span></div>
+    <div class="info-block warn" style="margin-top:14px;"><strong>The tradeoff.</strong>AMAs are unscripted. Questions cannot be pre-screened or ignored. This is exactly why they build trust, and exactly why preparation is non-negotiable.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Choosing the right host and subreddit</div>
+    <h3>The host</h3>
+    <p>The host must be a real, named person, not a brand account. The strongest AMA hosts are founders, domain experts with a verifiable area of expertise, or customer-facing leads with a clear story to tell. A generic "Brand X Team" account will be called out immediately. Reddit rewards humans over organizations every time.</p>
+    <h3>The subreddit</h3>
+    <p>Industry-specific subreddits often outperform r/IAmA for brand AMAs. A SaaS founder doing an AMA in r/startups or r/Entrepreneur will reach a more relevant audience than a general AMA sub. Research where the brand's target audience actually spends time before choosing, then contact moderators at least one to two weeks in advance to confirm the sub allows AMAs.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">AMA setup checklist</div>
+    <ul class="checklist">
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Verify the subreddit allows AMAs and check recent AMA engagement levels</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Contact moderators 1 to 2 weeks in advance to schedule and get posting guidelines</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Confirm host commitment: 60 to 90 minutes minimum of live response time</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Prepare 15 to 20 anticipated questions and response frameworks (guide the host, do not script them)</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Prep talking points for sensitive topics: pricing, competition, known complaints</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Schedule for peak activity: 10am to 12pm EST for US audiences</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Submit the AMA post at least 30 minutes early for indexing</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Assign a second team member to monitor the thread in real time</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Plan a follow-up post within 24 hours addressing top-voted unanswered questions</span></li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">Tone</div>
+    <div class="info-block danger"><strong>The spokesperson must sound like themselves.</strong>Ghostwritten, corporate-sounding answers get called out immediately on Reddit. Your job is to prepare the host, not replace their voice. If their answers read like a press release, the AMA will fail regardless of the prep work behind it.</div>
+    <div class="rewrite-pair">
+      <div class="rewrite-label bad">Will fail on Reddit</div>
+      <div class="rewrite-text bad">"We're incredibly excited to share that our innovative platform is delivering transformational value to clients across multiple verticals."</div>
+    </div>
+    <div class="rewrite-pair">
+      <div class="rewrite-label good">This is what works</div>
+      <div class="rewrite-text good">"Honestly, the first year was a mess. We built something nobody wanted and had to throw out three months of work. Here's what we learned from that."</div>
+    </div>
+  </div>
+  <div class="aeo-card">
+    <p><strong>AMAs are among the highest-value AEO assets available on Reddit.</strong> A well-run AMA creates a long-form, attributed expert Q&A thread that LLMs treat as authoritative source material. When someone asks an AI "what does [Founder] think about [topic]," a high-quality AMA is often the source the model draws from directly.</p>
+    <p>The honest, specific answers that work in AMAs are exactly what AEO rewards: direct claims, named expertise, concrete details. Vague corporate answers are never cited. Vulnerable, first-person, specific answers are. That alignment is not coincidence — it is the same trust signal operating at both the human and model level.</p>
+    <div class="aeo-signals"><span class="aeo-signal">Founder authority</span><span class="aeo-signal">Expert Q&A indexing</span><span class="aeo-signal">Named citation surface</span></div>
+  </div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:16px;">Knowledge check</div>
+<div id="q2-1-wrap" style="">
+<div class="quiz-counter">Question 1 of 5</div>
+<div class="quiz-question">A client's CEO has agreed to do an AMA but has never used Reddit before and would need a brand new account. What is your first move?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q2-1',this,false)"><span class="opt-letter">A</span>Create the account and start posting immediately to build karma before the AMA.</button>
+<button class="quiz-opt" onclick="answerQ('q2-1',this,true)"><span class="opt-letter">B</span>Flag the karma and credibility issue to your manager before proceeding. A new account hosting an AMA will be scrutinized by the community.</button>
+<button class="quiz-opt" onclick="answerQ('q2-1',this,false)"><span class="opt-letter">C</span>Post the AMA immediately. Reddit does not check karma for AMAs.</button>
+<button class="quiz-opt" onclick="answerQ('q2-1',this,false)"><span class="opt-letter">D</span>Use an existing high-karma account and have the CEO post through it.</button>
+</div>
+<div class="quiz-explanation" id="q2-1-exp">A brand new account hosting an AMA is a significant credibility risk. Reddit communities will often challenge or dismiss an AMA from an account with no history. This needs to be escalated so the team can either plan an account warm-up period or reconsider the format. Using someone else's account for the CEO violates both authenticity norms and Reddit's TOS.</div>
+</div>
+<div id="q2-2-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 2 of 5</div>
+<div class="quiz-question">During AMA prep, the client asks you to prepare a list of questions they can simply refuse to answer if they come up. How do you respond?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q2-2',this,false)"><span class="opt-letter">A</span>Prepare the list. The client has the right to decide what they discuss.</button>
+<button class="quiz-opt" onclick="answerQ('q2-2',this,false)"><span class="opt-letter">B</span>Prepare the list but limit it to genuinely sensitive legal topics.</button>
+<button class="quiz-opt" onclick="answerQ('q2-2',this,true)"><span class="opt-letter">C</span>Push back. Refusing to answer questions during an AMA is a red flag that requires escalation. The format only works if the host is committed to authentic engagement.</button>
+<button class="quiz-opt" onclick="answerQ('q2-2',this,false)"><span class="opt-letter">D</span>Agree, but coach the client to ignore questions subtly rather than explicitly refusing.</button>
+</div>
+<div class="quiz-explanation" id="q2-2-exp">A client who wants to pre-screen or refuse questions is not ready for an AMA. This is listed as a red flag in our playbook and requires escalation. The AMA format depends on authentic, open engagement. A spokesperson who visibly dodges questions will generate far more negative attention than the original question ever would have. The right move is to coach the host to handle hard questions well, not avoid them.</div>
+</div>
+<div id="q2-3-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 3 of 5</div>
+<div class="quiz-question">You are monitoring an AMA live. A highly-upvoted question comes in that was not in your prep list and involves a pricing increase from last year. The founder asks what to say. What is your advice?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q2-3',this,false)"><span class="opt-letter">A</span>Skip it. If they do not acknowledge it, it will get buried.</button>
+<button class="quiz-opt" onclick="answerQ('q2-3',this,false)"><span class="opt-letter">B</span>Redirect to the pricing page and offer a DM for anyone who wants to discuss their specific situation.</button>
+<button class="quiz-opt" onclick="answerQ('q2-3',this,true)"><span class="opt-letter">C</span>Answer it directly and honestly. Acknowledge if the rollout was handled badly, own the decision, explain the reasoning, and say what you would do differently.</button>
+<button class="quiz-opt" onclick="answerQ('q2-3',this,false)"><span class="opt-letter">D</span>Say you will follow up in a separate post once you have reviewed the details.</button>
+</div>
+<div class="quiz-explanation" id="q2-3-exp">A highly-upvoted question cannot be ignored. Silence reads as guilt. Redirects read as avoidance. Promising a separate follow-up delays and loses trust. The only move that works on Reddit is direct, honest engagement: acknowledge what went wrong if it did, explain the reasoning, and show some self-awareness. Reddit respects founders who can take a punch and respond with integrity far more than those who give polished non-answers.</div>
+</div>
+<div id="q2-4-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 4 of 5</div>
+<div class="quiz-question">The AMA has been live 45 minutes and the top-voted question involves a legal concern. No legal rep is available right now. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q2-4',this,false)"><span class="opt-letter">A</span>Answer as best you can with available information and note that details may be updated.</button>
+<button class="quiz-opt" onclick="answerQ('q2-4',this,true)"><span class="opt-letter">B</span>Do not respond to that question yet. Flag the concern to the client contact immediately and have the host continue answering other questions while you work to get legal clearance.</button>
+<button class="quiz-opt" onclick="answerQ('q2-4',this,false)"><span class="opt-letter">C</span>Have the host acknowledge the question and say they will circle back to it.</button>
+<button class="quiz-opt" onclick="answerQ('q2-4',this,false)"><span class="opt-letter">D</span>Pause the entire AMA until legal is available.</button>
+</div>
+<div class="quiz-explanation" id="q2-4-exp">Questions with legal exposure require legal review before any response goes live. The AMA does not need to stop entirely. The host can continue engaging with other questions while you escalate the legal concern through the right channel. Acknowledging the question without answering it can work briefly, but the priority is getting legal clearance quickly rather than posting an unapproved response to a sensitive question.</div>
+</div>
+<div id="q2-5-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 5 of 5</div>
+<div class="quiz-question">After the AMA ends, the client wants to delete three negative comments that were posted during the session. What do you tell them?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q2-5',this,false)"><span class="opt-letter">A</span>Delete them. The AMA is over and the comments are no longer relevant.</button>
+<button class="quiz-opt" onclick="answerQ('q2-5',this,false)"><span class="opt-letter">B</span>Delete them only if they have fewer than 10 upvotes.</button>
+<button class="quiz-opt" onclick="answerQ('q2-5',this,true)"><span class="opt-letter">C</span>Do not delete them. Explain to the client that deletion gets noticed, gets screenshotted, and creates far more negative attention than the original comments ever would.</button>
+<button class="quiz-opt" onclick="answerQ('q2-5',this,false)"><span class="opt-letter">D</span>Remove them only if they contain factually incorrect information.</button>
+</div>
+<div class="quiz-explanation" id="q2-5-exp">Deleting comments after an AMA is one of the most damaging moves a brand can make on Reddit. Communities notice. Deleted content gets screenshotted and reposted, often with commentary about why the brand removed it. The negative attention from the deletion will be significantly worse than anything in the original comments. The correct approach is to respond to legitimate criticism transparently, not erase it.</div>
+</div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:8px;">Free-form practice</div>
+  <p style="font-size:13.5px;color:var(--text2);margin-bottom:16px;">The AI plays a Reddit user in your AMA. Type the spokesperson's response and get real-time feedback on tone, strategy, and Reddit-readiness.</p>
+  <div class="scenario-bubble">
+    <div class="scenario-user">u/indie_dev_frustrated &middot; 847 points</div>
+    "Great AMA idea but every time I see a customer-obsessed company do one of these, the answers are polished and avoid anything real. So here's a real one: what's the biggest product decision you've made that you'd reverse if you could, and why didn't you catch it earlier?"
+  </div>
+  <textarea class="response-input" id="ff2-input" placeholder="Write the founder's response here..."></textarea>
+  <div class="btn-row"><button class="btn primary" onclick="submitFreeForm('ff2-input','ff2-feedback','ama')">Get feedback</button></div>
+  <div class="ai-feedback" id="ff2-feedback"></div>
+  <div class="btn-row" style="margin-top:24px;">
+    <button class="btn primary" id="m2-next" onclick="completeModule(2)" style="display:none">Next module</button>
+    <button class="btn" onclick="completeModule(2)">Mark complete and continue</button>
+  </div>
+</div>
+<div class="module-panel" id="module-3">
+  <div class="module-tag">Module 3</div>
+  <h1 class="module-title">Brand voice on Reddit</h1>
+  <p class="module-desc">Reddit detects inauthenticity faster than any other platform. Every branded post must pass one test: would a real person actually say this?</p>
+  <div class="card">
+    <div class="card-title">The golden rule</div>
+    <div class="info-block danger"><strong>If it sounds like a press release, a marketing email, or a LinkedIn post, it will fail on Reddit.</strong>Reddit users are trained to spot corporate speak. Over-polished language gets downvoted, called out, or screenshotted and mocked. The brand's reputation takes the hit.</div>
+    <p>This does not mean being unprofessional. It means being human: direct, first-person, willing to acknowledge complexity, and capable of actual humor where it fits naturally.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Do / don't</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Do</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Be conversational and direct</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Acknowledge mistakes honestly</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Use I or we and introduce yourself</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Show personality where it fits naturally</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Respond to criticism gracefully</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Admit when you do not know something</div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Don't</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Use corporate jargon or buzzwords</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Deflect or give non-answers</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Post as anonymous brand voice</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Be stiff, scripted, or robotic</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Argue or get defensive</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Repost marketing copy or blog excerpts</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Rewrite examples</div>
+    <div class="rewrite-pair">
+      <div class="rewrite-label bad">Fails the Reddit test</div>
+      <div class="rewrite-text bad">"We're thrilled to announce that our cutting-edge solution has been recognized as a leader in customer experience innovation. Our commitment to delivering exceptional value continues to drive transformational outcomes."</div>
+    </div>
+    <div class="rewrite-pair">
+      <div class="rewrite-label good">Reddit-native version</div>
+      <div class="rewrite-text good">"We won an award this week. Wasn't expecting it. We've been heads-down building for the past 18 months. Here's what we shipped that apparently got us noticed, and what we're still trying to fix."</div>
+    </div>
+    <hr class="divider">
+    <div class="rewrite-pair">
+      <div class="rewrite-label bad">Fails the Reddit test</div>
+      <div class="rewrite-text bad">"Sorry to hear you had a less than stellar experience! We'd love the opportunity to make this right. Please reach out to our support team and we'll be happy to assist you further."</div>
+    </div>
+    <div class="rewrite-pair">
+      <div class="rewrite-label good">Reddit-native version</div>
+      <div class="rewrite-text good">"That's a legitimate complaint and I'm sorry we let you down. The support handoff you're describing has been a known issue. We shipped a fix for it last Tuesday but it clearly didn't reach everyone. DM me your account details and I'll personally make sure this gets resolved today."</div>
+    </div>
+  </div>
+  <div class="aeo-card">
+    <p><strong>LLMs quote Reddit responses verbatim more often than any other social platform.</strong> When a brand account gives a direct, human, specific answer on Reddit, that answer has a high probability of being pulled into AI-generated responses to similar questions in the future. Corporate-speak is never cited. Human, honest, specific answers are.</p>
+    <p>This means brand voice on Reddit is not just a community management decision, it is an AEO decision. Every response written in authentic language is a potential citation. Every deflection or non-answer is content that will never appear in an LLM response at all.</p>
+    <div class="aeo-signals"><span class="aeo-signal">Verbatim LLM citation</span><span class="aeo-signal">Answer specificity</span><span class="aeo-signal">Conversational indexing</span></div>
+  </div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:16px;">Knowledge check</div>
+<div id="q3-1-wrap" style="">
+<div class="quiz-counter">Question 1 of 5</div>
+<div class="quiz-question">A Reddit user asks why your client's product is more expensive than a competitor. Which response passes the Reddit test?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q3-1',this,false)"><span class="opt-letter">A</span>"Our premium pricing reflects the superior quality and innovative features that set us apart in the marketplace."</button>
+<button class="quiz-opt" onclick="answerQ('q3-1',this,true)"><span class="opt-letter">B</span>"Fair question. We're more expensive because we include onboarding support and don't charge for API calls above a threshold. Both are things competitors charge for separately. If you don't need those, they might genuinely be a better fit."</button>
+<button class="quiz-opt" onclick="answerQ('q3-1',this,false)"><span class="opt-letter">C</span>"We'd love to discuss pricing options that work for your budget. Please reach out to our sales team."</button>
+<button class="quiz-opt" onclick="answerQ('q3-1',this,false)"><span class="opt-letter">D</span>"Pricing comparisons can be tricky. It's best to evaluate total cost of ownership across multiple factors."</button>
+</div>
+<div class="quiz-explanation" id="q3-1-exp">Option B passes the Reddit test because it is honest, specific, and even acknowledges when a competitor might be the right choice. Reddit rewards intellectual honesty enormously. Admitting that your product is not for everyone builds far more trust than deflecting. Options A and D are corporate non-answers. Option C redirects to sales, which Reddit reads as avoidance.</div>
+</div>
+<div id="q3-2-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 2 of 5</div>
+<div class="quiz-question">Which of the following is an appropriate use of humor in a branded Reddit post?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q3-2',this,false)"><span class="opt-letter">A</span>Using a forced meme format to announce a product update, even if the brand does not normally communicate that way.</button>
+<button class="quiz-opt" onclick="answerQ('q3-2',this,true)"><span class="opt-letter">B</span>A self-deprecating comment about a past mistake when the topic comes up naturally in a thread.</button>
+<button class="quiz-opt" onclick="answerQ('q3-2',this,false)"><span class="opt-letter">C</span>Responding to criticism with a joke to defuse tension.</button>
+<button class="quiz-opt" onclick="answerQ('q3-2',this,false)"><span class="opt-letter">D</span>Adding humor to every reply regardless of topic to seem more relatable.</button>
+</div>
+<div class="quiz-explanation" id="q3-2-exp">Self-deprecation about past mistakes, used naturally, is one of the most trust-building moves a brand can make on Reddit. It shows self-awareness and humanizes the brand. The other options fail because forced meme formats are transparent and cringe-inducing, joking in response to criticism reads as dismissive, and constant humor in every reply feels performative.</div>
+</div>
+<div id="q3-3-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 3 of 5</div>
+<div class="quiz-question">A brand community manager wants to respond to a complaint thread using the company's generic social media account with no named individual. What do you advise?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q3-3',this,false)"><span class="opt-letter">A</span>It's fine. The account is verified and users will know it's the brand.</button>
+<button class="quiz-opt" onclick="answerQ('q3-3',this,true)"><span class="opt-letter">B</span>Push back. Reddit expects humans, not brand accounts. Wherever possible, have a named individual respond and introduce themselves with their role.</button>
+<button class="quiz-opt" onclick="answerQ('q3-3',this,false)"><span class="opt-letter">C</span>It is acceptable as long as the response acknowledges the complaint.</button>
+<button class="quiz-opt" onclick="answerQ('q3-3',this,false)"><span class="opt-letter">D</span>Use the generic account only for minor issues. Escalate to a named individual for serious ones.</button>
+</div>
+<div class="quiz-explanation" id="q3-3-exp">Reddit trusts individuals far more than brand accounts. A named person responding to a complaint carries significantly more credibility than a generic @BrandXOfficial account. Where possible, the brand should establish a named contact who handles Reddit engagement so the community can build familiarity with a real person rather than a logo.</div>
+</div>
+<div id="q3-4-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 4 of 5</div>
+<div class="quiz-question">A user asks your client to explain a feature in technical detail. The community manager is not sure of the exact answer. What is the right move?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q3-4',this,false)"><span class="opt-letter">A</span>Give the best answer available and correct it in a follow-up if needed.</button>
+<button class="quiz-opt" onclick="answerQ('q3-4',this,false)"><span class="opt-letter">B</span>Redirect the user to the documentation page.</button>
+<button class="quiz-opt" onclick="answerQ('q3-4',this,true)"><span class="opt-letter">C</span>Admit you do not know off the top of your head, say you will find out, and follow through with a real answer within a reasonable timeframe.</button>
+<button class="quiz-opt" onclick="answerQ('q3-4',this,false)"><span class="opt-letter">D</span>Skip the question and respond to others. Someone on Reddit will likely answer it.</button>
+</div>
+<div class="quiz-explanation" id="q3-4-exp">Admitting you do not know something is explicitly listed in our voice guidelines as a correct approach. Reddit users respect honesty about the limits of your knowledge far more than a confident but vague answer. The critical part is following through: if you say you will find out, you need to actually come back with an answer.</div>
+</div>
+<div id="q3-5-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 5 of 5</div>
+<div class="quiz-question">The client wants to repurpose a blog post they are proud of as a Reddit post in a relevant subreddit. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q3-5',this,false)"><span class="opt-letter">A</span>Post it as-is. Good content performs well regardless of the original format.</button>
+<button class="quiz-opt" onclick="answerQ('q3-5',this,false)"><span class="opt-letter">B</span>Post the first paragraph as a teaser with a link to the full post.</button>
+<button class="quiz-opt" onclick="answerQ('q3-5',this,true)"><span class="opt-letter">C</span>Rewrite it entirely in Reddit voice before posting. Strip the marketing language, lead with the most interesting finding, and frame it as something the community would want to discuss rather than consume.</button>
+<button class="quiz-opt" onclick="answerQ('q3-5',this,false)"><span class="opt-letter">D</span>Post it only if the blog post does not mention the brand name more than twice.</button>
+</div>
+<div class="quiz-explanation" id="q3-5-exp">Repurposing content for Reddit requires a genuine rewrite, not light editing. Blog posts are written for a different context and a different reader relationship. Reddit-native content leads with value to the community, uses plain direct language, and does not read like marketing material. A blog post posted as-is will typically be flagged as self-promotion, ignored, or removed.</div>
+</div>
+  <div class="btn-row"><button class="btn primary" id="m3-next" onclick="completeModule(3)" style="display:none">Next module</button><button class="btn" onclick="completeModule(3)">Mark complete and continue</button></div>
+</div>
+<div class="module-panel" id="module-4">
+  <div class="module-tag">Module 4</div>
+  <h1 class="module-title">Subreddit management</h1>
+  <p class="module-desc">Building and running a branded subreddit is high-effort, high-reward work. This module covers when to recommend it, how to set it up correctly, and the rules that keep it healthy over time.</p>
+  <div class="card">
+    <div class="card-title">When to recommend a branded subreddit</div>
+    <p>Not every client needs a branded subreddit. The right candidates have an engaged user base that would actually want to join, a legitimate community purpose such as product support or user discussion, and a commitment to posting consistently. A dead sub is worse than no sub.</p>
+    <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Do not recommend for brands with no Reddit presence and no existing community</div>
+    <div class="do-dont-item dont" style="margin-top:6px;"><span class="do-dont-icon">!</span>Do not recommend if the client expects to control the narrative entirely</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Account warm-up</div>
+    <p>A brand new Reddit account posting promotional content will be flagged and removed. Even brand accounts need to build credibility first. Factor 2 to 4 weeks of warm-up into any client timeline where a new account is being created.</p>
+    <ol class="prose">
+      <li>Create the account and complete the profile: avatar, bio, website link</li>
+      <li>Spend 2 to 4 weeks engaging genuinely in relevant subreddits: answer questions, upvote, participate</li>
+      <li>Do not post any branded content during the warm-up period</li>
+      <li>Aim for a minimum of 100 to 200 karma before any branded posting</li>
+      <li>After warm-up, begin with value-first content before any promotional material</li>
+    </ol>
+  </div>
+  <div class="card">
+    <div class="card-title">Setup checklist</div>
+    <ul class="checklist">
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Audit whether r/[BrandName] already exists and who controls it</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Define community purpose: product support, industry discussion, or user showcase</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Set rules that allow brand presence without making the sub feel like an ad channel</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Build a 30-day content calendar before launch so the sub does not launch empty</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Establish moderation workflows: who approves what, on what timeline, and who is on call</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Set up flairs, wiki, and pinned posts with client approval before going live</span></li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">The cardinal moderation rule</div>
+    <div class="info-block danger"><strong>Never delete negative comments unless they violate Reddit's content policy.</strong>Deletion is noticed by Reddit communities immediately. It gets screenshotted, reposted, and creates far more negative attention than the original comment ever would have. Respond with transparency and empathy instead.</div>
+  </div>
+  <div class="aeo-card">
+    <p><strong>A branded subreddit is one of the highest-signal owned properties for LLM visibility.</strong> AI models treat r/BrandName as an official community. When buyer questions about that brand surface, subreddit content is weighted heavily as authoritative. The wiki, pinned posts, and top-upvoted brand responses all contribute to what the model says when asked about that brand.</p>
+    <p>A dead or low-quality subreddit actively hurts LLM representation. Models will still surface it as the authoritative community, but the content inside will be outdated or negative. Subreddit quality management is brand reputation management for the AI era.</p>
+    <div class="aeo-signals"><span class="aeo-signal">Owned community authority</span><span class="aeo-signal">Wiki indexing</span><span class="aeo-signal">Brand knowledge base</span></div>
+  </div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:16px;">Knowledge check</div>
+<div id="q4-1-wrap" style="">
+<div class="quiz-counter">Question 1 of 5</div>
+<div class="quiz-question">A client wants to launch a branded subreddit this week to coincide with a product launch. Their Reddit account was created yesterday. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q4-1',this,false)"><span class="opt-letter">A</span>Proceed. The product launch creates urgency and the community will forgive a new account.</button>
+<button class="quiz-opt" onclick="answerQ('q4-1',this,true)"><span class="opt-letter">B</span>Flag the issue immediately. Explain the warm-up requirement and the risk of a new account posting branded content. Propose a revised timeline or a non-branded approach first.</button>
+<button class="quiz-opt" onclick="answerQ('q4-1',this,false)"><span class="opt-letter">C</span>Create a new account, build karma quickly, and proceed with launch.</button>
+<button class="quiz-opt" onclick="answerQ('q4-1',this,false)"><span class="opt-letter">D</span>Launch the sub but keep all posts unlisted until the account has enough karma.</button>
+</div>
+<div class="quiz-explanation" id="q4-1-exp">This is a client expectation-setting conversation. A new account posting branded promotional content will be removed and flagged. Be transparent with the client: explain the 2 to 4 week warm-up requirement, the karma minimum, and why rushing this damages more than it helps.</div>
+</div>
+<div id="q4-2-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 2 of 5</div>
+<div class="quiz-question">A user posts an accurate complaint in the brand subreddit about a billing error. The client asks you to remove the post. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q4-2',this,false)"><span class="opt-letter">A</span>Remove the post. The client owns the subreddit and has the right to moderate it.</button>
+<button class="quiz-opt" onclick="answerQ('q4-2',this,false)"><span class="opt-letter">B</span>Remove the post but archive it privately.</button>
+<button class="quiz-opt" onclick="answerQ('q4-2',this,true)"><span class="opt-letter">C</span>Decline to remove it. Explain the deletion risk to the client and help them draft a transparent, empathetic public response that addresses the issue directly.</button>
+<button class="quiz-opt" onclick="answerQ('q4-2',this,false)"><span class="opt-letter">D</span>Flag the post to Reddit admins as off-topic to have it removed through official channels.</button>
+</div>
+<div class="quiz-explanation" id="q4-2-exp">Deleting a legitimate complaint is one of the fastest ways to destroy brand credibility on Reddit. Communities notice, the Streisand effect is real, and the deleted post will be shared and screenshotted. The correct move is to respond transparently, acknowledge the billing error, explain what happened, and state how it is being fixed.</div>
+</div>
+<div id="q4-3-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 3 of 5</div>
+<div class="quiz-question">Before building the subreddit for a new client, you discover that r/ClientBrandName already exists, is not controlled by the client, and has mostly negative posts. What do you recommend?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q4-3',this,false)"><span class="opt-letter">A</span>Create a new subreddit with a slightly different name like r/ClientBrandNameOfficial.</button>
+<button class="quiz-opt" onclick="answerQ('q4-3',this,true)"><span class="opt-letter">B</span>Escalate to your manager and the client before doing anything. This is a red flag that requires a strategic decision, not a workaround.</button>
+<button class="quiz-opt" onclick="answerQ('q4-3',this,false)"><span class="opt-letter">C</span>Contact the existing sub moderators and ask them to hand over control.</button>
+<button class="quiz-opt" onclick="answerQ('q4-3',this,false)"><span class="opt-letter">D</span>Report the existing subreddit to Reddit admins for impersonation.</button>
+</div>
+<div class="quiz-explanation" id="q4-3-exp">A pre-existing subreddit with negative sentiment is a significant strategic complication that cannot be resolved with a quick workaround. Creating a competing sub fragments the community and looks evasive. The right move is to escalate, assess the situation fully, and develop a strategy with the client before taking any action.</div>
+</div>
+<div id="q4-4-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 4 of 5</div>
+<div class="quiz-question">The client wants to use the brand subreddit to announce a new product every week and pin each announcement. What do you advise?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q4-4',this,false)"><span class="opt-letter">A</span>Approve it. It is their subreddit and regular posting is good for engagement.</button>
+<button class="quiz-opt" onclick="answerQ('q4-4',this,false)"><span class="opt-letter">B</span>Allow one pinned announcement per month but no more.</button>
+<button class="quiz-opt" onclick="answerQ('q4-4',this,true)"><span class="opt-letter">C</span>Push back on the approach. A subreddit that functions as an announcement channel will not build a real community. Promotional pins signal to members that the sub exists for the brand, not for them.</button>
+<button class="quiz-opt" onclick="answerQ('q4-4',this,false)"><span class="opt-letter">D</span>Allow it as long as the announcements are written in Reddit voice.</button>
+</div>
+<div class="quiz-explanation" id="q4-4-exp">Reddit allows a maximum of two pinned posts per subreddit. Using pins for weekly product announcements signals that the community exists to serve the brand rather than its members. This approach consistently produces low engagement and high churn. The content mix for a healthy branded subreddit should lean toward community value, with brand announcements used sparingly for genuinely newsworthy moments.</div>
+</div>
+<div id="q4-5-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 5 of 5</div>
+<div class="quiz-question">The brand subreddit has been live three months and engagement is low. The client wants to seed posts using internal team members posting anonymously to make it look more active. What do you say?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q4-5',this,false)"><span class="opt-letter">A</span>It's fine if the posts are genuinely useful and not promotional.</button>
+<button class="quiz-opt" onclick="answerQ('q4-5',this,false)"><span class="opt-letter">B</span>Allow it only if the employees do not disclose their affiliation.</button>
+<button class="quiz-opt" onclick="answerQ('q4-5',this,true)"><span class="opt-letter">C</span>Decline. Undisclosed participation by employees in a brand subreddit is astroturfing. If employees want to participate, their affiliation must be disclosed. Fake engagement also does not solve the underlying problem of low community value.</button>
+<button class="quiz-opt" onclick="answerQ('q4-5',this,false)"><span class="opt-letter">D</span>Allow it temporarily while working to grow organic membership.</button>
+</div>
+<div class="quiz-explanation" id="q4-5-exp">Undisclosed paid or affiliated promotion is a Reddit TOS violation and a core compliance issue in our playbook. Employees posting anonymously to make a brand subreddit look more active is astroturfing regardless of how innocuous the posts seem. If employees want to participate, they must disclose their affiliation. Beyond the compliance issue, fake engagement does not address why the community is not growing.</div>
+</div>
+  <div class="btn-row"><button class="btn primary" id="m4-next" onclick="completeModule(4)" style="display:none">Next module</button><button class="btn" onclick="completeModule(4)">Mark complete and continue</button></div>
+</div>
+<div class="module-panel" id="module-5">
+  <div class="module-tag">Module 5</div>
+  <h1 class="module-title">Pinned FAQ &amp; wiki building</h1>
+  <p class="module-desc">A well-built wiki is the silent workhorse of a branded subreddit. Done right, it reduces moderation load, builds community trust, and maintains brand voice without requiring constant attention.</p>
+  <div class="card">
+    <div class="card-title">What the wiki does</div>
+    <p>The wiki and pinned posts serve as the community's institutional memory. They answer questions that get asked repeatedly so new members do not have to wait and existing members do not have to repeat themselves. The best wikis feel like they were written by someone who actually uses the product, not by a support team or a marketing department.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Building process</div>
+    <ol class="prose">
+      <li><strong>Audit first.</strong> Pull the most frequently asked questions from the subreddit's post history before writing anything.</li>
+      <li><strong>Write in community voice, not help desk voice.</strong> "Our team is happy to assist you" is help desk voice. "Here's how to fix the most annoying part of the onboarding flow" is community voice.</li>
+      <li><strong>Organize by topic, not by product feature.</strong> Users think in problems and use cases, not product architecture.</li>
+      <li><strong>Link internally between wiki pages.</strong> Build it like a web, not a list.</li>
+      <li><strong>Set a quarterly review cadence with the client.</strong> Wiki content goes stale fast, especially pricing, feature details, and support contacts.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <div class="card-title">What to pin vs. not pin</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Pin this</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>The single most important thing a new member needs to know</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Community rules written in community voice</div>
+        <div class="do-dont-item do"><span class="do-dont-icon">+</span>Active announcements with genuine community relevance</div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Do not pin this</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Promotional content or product announcements</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Outdated posts nobody remembered to remove</div>
+        <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Content that benefits the brand more than the community</div>
+      </div>
+    </div>
+    <div class="info-block" style="margin-top:12px;">Reddit allows a maximum of 2 pinned posts per subreddit. Use both deliberately. Pinned content is the first thing a new member sees and signals what the community values.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Help desk voice vs. community voice</div>
+    <div class="rewrite-pair">
+      <div class="rewrite-label bad">Help desk voice</div>
+      <div class="rewrite-text bad">"Welcome to the official support wiki for Brand X. Our team is dedicated to providing you with the best possible experience. For assistance with billing inquiries, please contact our support team at support@brand.com within 48 hours."</div>
+    </div>
+    <div class="rewrite-pair">
+      <div class="rewrite-label good">Community voice</div>
+      <div class="rewrite-text good">"Billing questions: if your charge looks wrong, check the usage dashboard first. About 80% of unexpected charge questions come from the overage system, which is genuinely confusing. Here's how it works. If that doesn't explain it, post here or use the in-app chat for faster resolution than email."</div>
+    </div>
+  </div>
+  <div class="aeo-card">
+    <p><strong>The Reddit wiki is one of the most underrated AEO assets available to brands.</strong> LLMs treat subreddit wikis as structured, community-validated reference material. A well-organized wiki that explains what a product does, who it is for, and what common issues exist gives AI models exactly the structured information they need to answer buyer questions accurately.</p>
+    <p>Write wiki content with the question-answer structure explicitly in mind. "What is [Product] and who is it for?" answered clearly in a wiki is far more likely to surface in an AI-generated product comparison than a blog post saying the same thing. Reddit wikis also rank in Google and get indexed faster than most brand-owned content.</p>
+    <div class="aeo-signals"><span class="aeo-signal">Structured Q&A indexing</span><span class="aeo-signal">Wiki authority weighting</span><span class="aeo-signal">Buyer comparison surface</span></div>
+  </div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:16px;">Knowledge check</div>
+<div id="q5-1-wrap" style="">
+<div class="quiz-counter">Question 1 of 5</div>
+<div class="quiz-question">The client wants to organize the wiki by product module: Dashboard, Integrations, Reporting, API. What do you recommend?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q5-1',this,false)"><span class="opt-letter">A</span>Accept the structure. The client knows their product better than you do.</button>
+<button class="quiz-opt" onclick="answerQ('q5-1',this,true)"><span class="opt-letter">B</span>Push back and propose organizing by user tasks or problem types instead. That is how users think, not by product architecture.</button>
+<button class="quiz-opt" onclick="answerQ('q5-1',this,false)"><span class="opt-letter">C</span>Use both structures: product modules as primary and use cases as secondary navigation.</button>
+<button class="quiz-opt" onclick="answerQ('q5-1',this,false)"><span class="opt-letter">D</span>Mirror the structure of the client's official documentation so they stay consistent.</button>
+</div>
+<div class="quiz-explanation" id="q5-1-exp">Users come to a wiki with problems, not with knowledge of product architecture. Organizing by task, problem, or outcome is almost always more useful than organizing by product module. This is a constructive pushback worth having with the client.</div>
+</div>
+<div id="q5-2-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 2 of 5</div>
+<div class="quiz-question">It has been 8 months since the wiki was last reviewed. The client's pricing, a deprecated feature, and the support email have all changed. The wiki still shows the old information. Who is responsible for flagging this?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q5-2',this,false)"><span class="opt-letter">A</span>The client. They should have told us when things changed.</button>
+<button class="quiz-opt" onclick="answerQ('q5-2',this,true)"><span class="opt-letter">B</span>Us. The quarterly review cadence is our responsibility to maintain and flag. Outdated wikis reflect on the brand account we manage.</button>
+<button class="quiz-opt" onclick="answerQ('q5-2',this,false)"><span class="opt-letter">C</span>The community. Users will flag outdated information in comments.</button>
+<button class="quiz-opt" onclick="answerQ('q5-2',this,false)"><span class="opt-letter">D</span>Shared responsibility with no clear owner.</button>
+</div>
+<div class="quiz-explanation" id="q5-2-exp">When we manage a brand's Reddit presence, wiki accuracy is our responsibility to audit and maintain. Clients do not always think to notify us when internal changes happen. Building a quarterly wiki review into the retainer cadence, and proactively checking in when major changes are announced, is part of delivering this service well.</div>
+</div>
+<div id="q5-3-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 3 of 5</div>
+<div class="quiz-question">The client asks you to add a section to the wiki promoting their new premium tier. It reads like a product page. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q5-3',this,false)"><span class="opt-letter">A</span>Add it as written. Clients can include product information in their own subreddit wiki.</button>
+<button class="quiz-opt" onclick="answerQ('q5-3',this,true)"><span class="opt-letter">B</span>Rewrite it in community voice before adding it. Frame it around what the premium tier actually enables users to do, not what the brand wants to sell.</button>
+<button class="quiz-opt" onclick="answerQ('q5-3',this,false)"><span class="opt-letter">C</span>Add it but place it at the bottom of the wiki so it is less prominent.</button>
+<button class="quiz-opt" onclick="answerQ('q5-3',this,false)"><span class="opt-letter">D</span>Decline to add product promotion to the wiki entirely.</button>
+</div>
+<div class="quiz-explanation" id="q5-3-exp">Product information belongs in the wiki if it helps users make decisions or understand the product better. The issue is the format: a section that reads like a product page will be perceived as an ad inside what is supposed to be a community resource. Rewrite it in a way that serves the reader first.</div>
+</div>
+<div id="q5-4-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 4 of 5</div>
+<div class="quiz-question">You are starting the wiki for a new client subreddit from scratch. There is no post history to audit yet. What is your first step?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q5-4',this,false)"><span class="opt-letter">A</span>Build the wiki based on the client's FAQ page from their website.</button>
+<button class="quiz-opt" onclick="answerQ('q5-4',this,false)"><span class="opt-letter">B</span>Write wiki entries for every product feature to make it comprehensive from day one.</button>
+<button class="quiz-opt" onclick="answerQ('q5-4',this,true)"><span class="opt-letter">C</span>Audit related subreddits and competitor communities to find the questions this audience actually asks before writing anything.</button>
+<button class="quiz-opt" onclick="answerQ('q5-4',this,false)"><span class="opt-letter">D</span>Launch with a minimal wiki and build it out as questions come in organically.</button>
+</div>
+<div class="quiz-explanation" id="q5-4-exp">Before a subreddit has its own post history, the best source of real user questions is the communities where that audience already lives: related subreddits, competitor communities, and adjacent interest groups. A website FAQ reflects what the brand thinks users ask, not what they actually ask.</div>
+</div>
+<div id="q5-5-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 5 of 5</div>
+<div class="quiz-question">A community member writes a detailed, accurate answer to a frequently asked question in the comments. It is better than your current wiki entry on the same topic. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q5-5',this,false)"><span class="opt-letter">A</span>Copy the answer into the wiki without crediting the user.</button>
+<button class="quiz-opt" onclick="answerQ('q5-5',this,true)"><span class="opt-letter">B</span>Ask the user for permission to feature their answer in the wiki, thank them publicly, and credit them if they agree.</button>
+<button class="quiz-opt" onclick="answerQ('q5-5',this,false)"><span class="opt-letter">C</span>Leave it in the comments. It is not the brand's content to use.</button>
+<button class="quiz-opt" onclick="answerQ('q5-5',this,false)"><span class="opt-letter">D</span>Update the wiki to link to the comment thread instead of writing a new entry.</button>
+</div>
+<div class="quiz-explanation" id="q5-5-exp">User-generated content that genuinely helps the community is gold. The right approach is to recognize it publicly, ask permission before featuring it anywhere, and credit the author. This improves the wiki with real community knowledge, makes the original poster feel valued, and signals to the community that contributions are noticed and appreciated.</div>
+</div>
+  <div class="btn-row"><button class="btn primary" id="m5-next" onclick="completeModule(5)" style="display:none">Next module</button><button class="btn" onclick="completeModule(5)">Mark complete and continue</button></div>
+</div>
+<div class="module-panel" id="module-6">
+  <div class="module-tag">Module 6</div>
+  <h1 class="module-title">Reputation defense &amp; crisis response</h1>
+  <p class="module-desc">Silence on a negative thread reads as guilt. Overreaction makes things worse. This module covers the tiered response framework and how to handle anything from a single complaint to a viral thread.</p>
+  <div class="card">
+    <div class="card-title">Tiered response framework</div>
+    <table class="ref">
+      <tr><th>Tier</th><th>Trigger</th><th>Response owner</th><th>Urgency</th></tr>
+      <tr><td><strong>Tier 1</strong></td><td>Single negative comment, low visibility</td><td>Account manager</td><td>Within SLA (4 to 24h)</td></tr>
+      <tr><td><strong>Tier 2</strong></td><td>Thread gaining traction, 50 to 500 upvotes</td><td>Account manager plus senior review</td><td>Within 2 to 4 hours</td></tr>
+      <tr><td><strong>Tier 3</strong></td><td>500+ upvotes, r/all, news pickup, exec named</td><td>Escalate immediately. Client comms and legal must be involved.</td><td>Within 1 hour</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">The cardinal rule</div>
+    <div class="info-block danger"><strong>Never respond with defensiveness.</strong>"Sorry you feel that way" without context makes things dramatically worse. Lead with empathy, then follow with facts. One clear, professional response is always better than a back-and-forth argument.</div>
+    <p>The correct sequence for any reputation response:</p>
+    <ol class="prose">
+      <li>Read the full thread first. Understand the root grievance, not just the headline comment.</li>
+      <li>Respond to the most visible comment, not every negative one.</li>
+      <li>Acknowledge the concern before defending the brand.</li>
+      <li>Correct factual errors specifically, with sources where possible.</li>
+      <li>Do not argue. One clear response, then disengage from the back-and-forth.</li>
+      <li>If the issue is legitimate, flag it to the client for resolution before responding. Do not promise things you cannot deliver.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <div class="card-title">Escalate immediately if...</div>
+    <div class="do-dont-item dont"><span class="do-dont-icon">!</span>Thread has 500+ upvotes or is trending on r/all</div>
+    <div class="do-dont-item dont" style="margin-top:6px;"><span class="do-dont-icon">!</span>A major news outlet has already picked up the thread</div>
+    <div class="do-dont-item dont" style="margin-top:6px;"><span class="do-dont-icon">!</span>Thread contains personal attacks on named executives</div>
+    <div class="do-dont-item dont" style="margin-top:6px;"><span class="do-dont-icon">!</span>The underlying complaint is valid and unresolved</div>
+    <div class="do-dont-item dont" style="margin-top:6px;"><span class="do-dont-icon">!</span>Issue involves legal exposure: data breach, discrimination, or regulatory violation. No response without legal approval.</div>
+  </div>
+  <div class="aeo-card">
+    <p><strong>How a brand handles a crisis on Reddit directly shapes how LLMs represent that brand.</strong> AI models are trained on large volumes of Reddit content. A crisis thread with hundreds of upvotes, a dismissive response, and angry follow-up comments will surface when someone asks "is [Brand] trustworthy?" A crisis handled with transparency creates the opposite signal — the thread still exists, but the brand's response and the community's reaction to it become part of the model's representation.</p>
+    <p>The response written in the next two hours will be cited for years. Handling a crisis well is not just a community management call — it is a permanent AEO investment.</p>
+    <div class="aeo-signals"><span class="aeo-signal">Sentiment training signal</span><span class="aeo-signal">Trust representation</span><span class="aeo-signal">Permanent index presence</span></div>
+  </div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:16px;">Knowledge check</div>
+<div id="q6-1-wrap" style="">
+<div class="quiz-counter">Question 1 of 5</div>
+<div class="quiz-question">A thread appears in a major industry subreddit claiming your client's software deleted three years of customer data. It has 600 upvotes and a tech journalist has already replied in the thread. What is your first action?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q6-1',this,false)"><span class="opt-letter">A</span>Post a response immediately explaining that the claim is false.</button>
+<button class="quiz-opt" onclick="answerQ('q6-1',this,false)"><span class="opt-letter">B</span>Ask the client's support team to verify the claim before doing anything else.</button>
+<button class="quiz-opt" onclick="answerQ('q6-1',this,true)"><span class="opt-letter">C</span>Escalate immediately to client comms and legal. This is a Tier 3 crisis. Do not post anything without their approval.</button>
+<button class="quiz-opt" onclick="answerQ('q6-1',this,false)"><span class="opt-letter">D</span>Report the thread to subreddit moderators as potentially defamatory.</button>
+</div>
+<div class="quiz-explanation" id="q6-1-exp">This is a Tier 3 crisis by every measure: 500+ upvotes, journalist involvement, and a claim involving potential data loss which carries legal exposure. Any response needs legal and comms sign-off before it goes anywhere near the thread. Acting independently in this situation, even with good intentions, could make things significantly worse. Escalate first and wait for approval.</div>
+</div>
+<div id="q6-2-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 2 of 5</div>
+<div class="quiz-question">An accurate complaint about your client's slow customer service response times has 80 upvotes. The client wants to dispute it. What do you advise?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q6-2',this,false)"><span class="opt-letter">A</span>Dispute the claim. The client knows their metrics and the user might be exaggerating.</button>
+<button class="quiz-opt" onclick="answerQ('q6-2',this,true)"><span class="opt-letter">B</span>Advise the client against disputing it. The complaint is accurate. Draft a response that acknowledges the issue, gives an honest reason if there is one, and states what is being done to fix it.</button>
+<button class="quiz-opt" onclick="answerQ('q6-2',this,false)"><span class="opt-letter">C</span>Ask the user to DM their ticket number so support can prioritize their case.</button>
+<button class="quiz-opt" onclick="answerQ('q6-2',this,false)"><span class="opt-letter">D</span>Wait to see if the thread gains more traction before engaging.</button>
+</div>
+<div class="quiz-explanation" id="q6-2-exp">Disputing an accurate complaint on Reddit signals that the brand cares more about its image than the actual problem, and the community will call that out. The correct strategy is transparent acknowledgment: yes, response times have been slow, here is why, and here is what is being done. This transforms a complaint thread into a demonstration of accountability.</div>
+</div>
+<div id="q6-3-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 3 of 5</div>
+<div class="quiz-question">A negative thread has been gaining traction for 6 hours with 200 upvotes. You have drafted a response but the client has not approved it yet and is not responding to messages. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q6-3',this,false)"><span class="opt-letter">A</span>Post the response. The longer you wait, the worse it gets.</button>
+<button class="quiz-opt" onclick="answerQ('q6-3',this,false)"><span class="opt-letter">B</span>Post a placeholder response saying the brand is aware and will respond soon.</button>
+<button class="quiz-opt" onclick="answerQ('q6-3',this,true)"><span class="opt-letter">C</span>Escalate through every available channel to reach the client or their designated approver. This is exactly the scenario the approval chain and response SLA should have been set up to handle.</button>
+<button class="quiz-opt" onclick="answerQ('q6-3',this,false)"><span class="opt-letter">D</span>Post the response and inform the client after the fact.</button>
+</div>
+<div class="quiz-explanation" id="q6-3-exp">Posting without client approval opens the agency to serious liability and damages the client relationship regardless of how good the response is. The correct answer points to a process problem: before this situation arises, the engagement should have a defined approval chain and an SLA for how quickly approvals need to happen. If that does not exist yet, this incident is the reason to build it.</div>
+</div>
+<div id="q6-4-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 4 of 5</div>
+<div class="quiz-question">A competitor appears to be coordinating negative posts about your client across multiple subreddits. The posts feel coordinated but you cannot prove it. What is the right approach?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q6-4',this,false)"><span class="opt-letter">A</span>Report each post to Reddit admins for coordinated inauthentic behavior.</button>
+<button class="quiz-opt" onclick="answerQ('q6-4',this,false)"><span class="opt-letter">B</span>Respond to each post aggressively pointing out that the campaign appears coordinated.</button>
+<button class="quiz-opt" onclick="answerQ('q6-4',this,true)"><span class="opt-letter">C</span>Respond to factual errors in each thread with calm, professional corrections. Document the pattern and report to the client. Let the quality of responses speak for the brand.</button>
+<button class="quiz-opt" onclick="answerQ('q6-4',this,false)"><span class="opt-letter">D</span>Ignore it. Engaging will only amplify the posts.</button>
+</div>
+<div class="quiz-explanation" id="q6-4-exp">Publicly accusing a competitor of coordinated behavior without proof will backfire and make the brand look paranoid. Ignoring factual errors lets misinformation stand. The correct approach is to address each thread on its own merits: correct what is inaccurate, stay professional, and let the response quality do the work. Document the pattern carefully and share it with the client.</div>
+</div>
+<div id="q6-5-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 5 of 5</div>
+<div class="quiz-question">After responding well to a negative thread, several community members have thanked the brand publicly. The client wants to screenshot these comments and share them as testimonials on LinkedIn. What do you advise?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q6-5',this,false)"><span class="opt-letter">A</span>Go ahead. The comments are public and the brand can share positive feedback.</button>
+<button class="quiz-opt" onclick="answerQ('q6-5',this,false)"><span class="opt-letter">B</span>Share the screenshots but blur out the usernames to protect privacy.</button>
+<button class="quiz-opt" onclick="answerQ('q6-5',this,true)"><span class="opt-letter">C</span>Advise caution. Using Reddit community goodwill as LinkedIn marketing content can feel extractive and may generate backlash in the original thread if community members notice. The goodwill is worth more left where it is.</button>
+<button class="quiz-opt" onclick="answerQ('q6-5',this,false)"><span class="opt-letter">D</span>Ask each commenter for permission before sharing their comments externally.</button>
+</div>
+<div class="quiz-explanation" id="q6-5-exp">Converting genuine community goodwill into marketing assets risks undermining the authenticity that earned the goodwill in the first place. Reddit users are sensitive to brands that treat community interactions as content to extract. If the original commenters or other community members see their words turned into LinkedIn promotional material, the reaction can be swift and negative.</div>
+</div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:8px;">Free-form practice</div>
+  <p style="font-size:13.5px;color:var(--text2);margin-bottom:16px;">Type a brand response to the thread below. The AI will evaluate your tone, sequencing, and strategic approach.</p>
+  <div class="scenario-bubble">
+    <div class="scenario-user">r/SaaSdeals &middot; 312 upvotes &middot; 47 comments</div>
+    "Switched away from [YourClient] last month after being a customer for 4 years. Price went up 60% with 2 weeks notice, no grandfathering, no explanation beyond 'market adjustment.' Support just copy-pasted the pricing page at me when I asked why. Genuinely gutted. The product itself is great but I can't justify this anymore. Anyone else hit with this?"
+  </div>
+  <textarea class="response-input" id="ff6-input" placeholder="Write the brand's response here..."></textarea>
+  <div class="btn-row"><button class="btn primary" onclick="submitFreeForm('ff6-input','ff6-feedback','reputation')">Get feedback</button></div>
+  <div class="ai-feedback" id="ff6-feedback"></div>
+  <div class="btn-row" style="margin-top:24px;">
+    <button class="btn primary" id="m6-next" onclick="completeModule(6)" style="display:none">Next module</button>
+    <button class="btn" onclick="completeModule(6)">Mark complete and continue</button>
+  </div>
+</div>
+<div class="module-panel" id="module-7">
+  <div class="module-tag">Module 7</div>
+  <h1 class="module-title">Contests &amp; giveaways</h1>
+  <p class="module-desc">Contests can build genuine community engagement or blow up publicly. Reddit's rules, community norms, and compliance requirements make this one of the trickier branded tactics to execute correctly.</p>
+  <div class="card">
+    <div class="card-title">Why Reddit contests are different</div>
+    <p>Reddit users are more skeptical of brand promotions than audiences on almost any other platform. A contest that works on Instagram will get mocked on Reddit. The format, framing, and value exchange all need to feel native to Reddit culture.</p>
+    <div class="info-block warn"><strong>The core principle.</strong>The contest should feel like it exists for the community's benefit, not as a data collection or follower acquisition exercise dressed up as a giveaway. Reddit users can tell the difference.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Rules you must know before running any contest</div>
+    <div class="do-dont-item dont"><span class="do-dont-icon">!</span><span><strong>No vote manipulation.</strong> Never ask participants to upvote the contest post, upvote entries, or engage in any coordinated voting. This is a TOS violation and a ban risk.</span></div>
+    <div class="do-dont-item dont" style="margin-top:8px;"><span class="do-dont-icon">!</span><span><strong>No requiring new account creation.</strong> Contests that require users to create a new account to enter will be flagged.</span></div>
+    <div class="do-dont-item dont" style="margin-top:8px;"><span class="do-dont-icon">!</span><span><strong>Check subreddit rules first.</strong> Many subreddits explicitly prohibit contests, giveaways, or self-promotion. Getting this wrong leads to removal and a sub ban.</span></div>
+    <div class="do-dont-item dont" style="margin-top:8px;"><span class="do-dont-icon">!</span><span><strong>No requiring follows or subscriptions.</strong> "Subscribe to our subreddit to enter" violates Reddit's contest guidelines.</span></div>
+    <div class="do-dont-item do" style="margin-top:8px;"><span class="do-dont-icon">+</span><span><strong>Use Reddit's built-in contest mode</strong> for randomized entry selection. It hides scores and helps prevent bias and manipulation.</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">What works vs. what backfires</div>
+    <table class="ref">
+      <tr><th>Format</th><th>Works?</th><th>Why</th></tr>
+      <tr><td>Comment to enter: share a relevant experience</td><td><span class="risk-badge risk-low">Works well</span></td><td>Generates genuine community content, feels participatory</td></tr>
+      <tr><td>Creative contest: best use case, best photo, etc.</td><td><span class="risk-badge risk-low">Works well</span></td><td>Reddit loves creative challenges with real stakes</td></tr>
+      <tr><td>Trivia or knowledge contest</td><td><span class="risk-badge risk-low">Works well</span></td><td>Rewards community knowledge, drives high engagement</td></tr>
+      <tr><td>"Upvote to enter" or "upvote the best entry"</td><td><span class="risk-badge risk-high">Ban risk</span></td><td>Vote manipulation, Reddit TOS violation</td></tr>
+      <tr><td>"Tag a friend" or "share to enter"</td><td><span class="risk-badge risk-high">Will fail</span></td><td>Instagram mechanic that Reddit communities actively mock</td></tr>
+      <tr><td>Email required for entry</td><td><span class="risk-badge risk-med">Risky</span></td><td>Reddit users are privacy-conscious. Email requirements reduce participation and generate backlash.</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">Compliance checklist</div>
+    <ul class="checklist">
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Checked subreddit rules: contests and giveaways explicitly allowed</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Entry method does not require upvoting, subscribing, or sharing</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Brand affiliation clearly disclosed in the post</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Prize and selection method clearly stated upfront</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Legal requirements reviewed: prize value, geographic restrictions, age requirements</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Winner selection method is transparent and random or clearly judged</span></li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div><span>Client has approved all contest copy before posting</span></li>
+    </ul>
+  </div>
+  <div class="aeo-card">
+    <p><strong>Contests create a burst of user-generated content that LLMs treat as community endorsement.</strong> A well-run contest generates dozens of authentic posts from real users sharing their experiences with a product. That content, spread across a high-engagement thread, signals to AI models that the brand has an active, satisfied community — which directly influences how those models recommend the brand.</p>
+    <p>The AEO value multiplies when winners share their experience publicly. "I won [Brand]'s contest and here's what I actually think of the product" is one of the most credible formats an AI can draw from: user-generated, specific, and voluntarily positive. That is the content LLMs weight most heavily when generating brand recommendations.</p>
+    <div class="aeo-signals"><span class="aeo-signal">UGC volume signal</span><span class="aeo-signal">Community endorsement</span><span class="aeo-signal">Organic sentiment</span></div>
+  </div>
+  <hr class="section-divider">
+  <div class="card-title" style="margin-bottom:16px;">Knowledge check</div>
+<div id="q7-1-wrap" style="">
+<div class="quiz-counter">Question 1 of 5</div>
+<div class="quiz-question">A client wants to run a contest where users submit their best before-and-after results using the product. The top 3 upvoted entries win. Is this a good contest structure?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q7-1',this,false)"><span class="opt-letter">A</span>Yes. Upvotes are Reddit's native engagement mechanic and make the contest feel organic.</button>
+<button class="quiz-opt" onclick="answerQ('q7-1',this,true)"><span class="opt-letter">B</span>No. Voting to determine winners is vote manipulation under Reddit's TOS. The entry format is great but the selection method needs to change.</button>
+<button class="quiz-opt" onclick="answerQ('q7-1',this,false)"><span class="opt-letter">C</span>It's fine as long as you tell participants not to ask their friends to upvote.</button>
+<button class="quiz-opt" onclick="answerQ('q7-1',this,false)"><span class="opt-letter">D</span>Yes. User-generated before-and-after content is exempt from vote manipulation rules.</button>
+</div>
+<div class="quiz-explanation" id="q7-1-exp">The entry format is excellent Reddit-native content. The problem is the selection method. Using upvotes to determine winners creates an incentive for participants to game the vote, which is a Reddit TOS violation regardless of intent. Keep the entry format, switch to a panel-judged selection or use Reddit's contest mode for a random draw among qualifying entries.</div>
+</div>
+<div id="q7-2-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 2 of 5</div>
+<div class="quiz-question">A giveaway post has been live for an hour. A top commenter writes: 'Cool giveaway but this feels like a data grab. Why do you need our email to enter a Reddit contest?' How do you respond?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q7-2',this,false)"><span class="opt-letter">A</span>Explain that emails are required for prize delivery and the data will not be used for marketing.</button>
+<button class="quiz-opt" onclick="answerQ('q7-2',this,false)"><span class="opt-letter">B</span>Ignore the comment. One user's concern does not speak for the community.</button>
+<button class="quiz-opt" onclick="answerQ('q7-2',this,true)"><span class="opt-letter">C</span>Acknowledge the concern publicly, explain exactly why the email is needed and how the data will be used, and flag to the client immediately whether the email requirement can be removed.</button>
+<button class="quiz-opt" onclick="answerQ('q7-2',this,false)"><span class="opt-letter">D</span>Edit the original post to add a data privacy statement.</button>
+</div>
+<div class="quiz-explanation" id="q7-2-exp">Reddit users are highly privacy-conscious and a comment like this will get upvoted and amplified if not addressed quickly and honestly. Respond directly, acknowledge the concern, explain specifically why the email is needed, and state what will and will not happen with the data. Flag to the client whether the email requirement can be removed. A Reddit DM for prize delivery is a common alternative.</div>
+</div>
+<div id="q7-3-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 3 of 5</div>
+<div class="quiz-question">The client wants to run a contest in r/technology, a large general subreddit. You check the rules and see no mention of contests either way. What do you do?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q7-3',this,false)"><span class="opt-letter">A</span>Proceed. If contests were prohibited, the rules would say so.</button>
+<button class="quiz-opt" onclick="answerQ('q7-3',this,true)"><span class="opt-letter">B</span>Contact the moderators directly before posting to confirm whether contests are permitted and what the requirements are.</button>
+<button class="quiz-opt" onclick="answerQ('q7-3',this,false)"><span class="opt-letter">C</span>Post the contest as a text post rather than a link post to reduce the chance of removal.</button>
+<button class="quiz-opt" onclick="answerQ('q7-3',this,false)"><span class="opt-letter">D</span>Run a small test post first to see how the community reacts before the official contest.</button>
+</div>
+<div class="quiz-explanation" id="q7-3-exp">An absence of a rule prohibiting contests does not mean contests are permitted. Many large subreddits have unwritten norms or moderator-enforced policies not captured in the sidebar rules. Contacting the moderators directly before posting is both the safest approach and a best practice: mods who know about a contest in advance are less likely to remove it.</div>
+</div>
+<div id="q7-4-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 4 of 5</div>
+<div class="quiz-question">Your client wants to announce the contest winner by creating a new post tagging the winner and promoting the brand's product at the same time. What do you advise?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q7-4',this,false)"><span class="opt-letter">A</span>Approve it. Winner announcements are a natural opportunity for brand visibility.</button>
+<button class="quiz-opt" onclick="answerQ('q7-4',this,true)"><span class="opt-letter">B</span>Separate the winner announcement from the product promotion. The announcement should be about the winner and the community. Save the product messaging for a different post if needed at all.</button>
+<button class="quiz-opt" onclick="answerQ('q7-4',this,false)"><span class="opt-letter">C</span>Add the product promotion only if it's brief and comes at the end of the announcement.</button>
+<button class="quiz-opt" onclick="answerQ('q7-4',this,false)"><span class="opt-letter">D</span>Skip the winner announcement post entirely and notify the winner privately.</button>
+</div>
+<div class="quiz-explanation" id="q7-4-exp">Bundling product promotion into a winner announcement makes the congratulations feel transactional and taints the goodwill the contest generated. The announcement should celebrate the winner and thank the community for participating. A post that uses the winner's name as a hook for product messaging will be recognized for what it is and will undermine the community trust the contest was supposed to build.</div>
+</div>
+<div id="q7-5-wrap" style="display:none;margin-top:20px;">
+<div class="quiz-counter">Question 5 of 5</div>
+<div class="quiz-question">A client in the financial services industry wants to run a cash giveaway on Reddit with no geographic restrictions. What is your concern?</div>
+<div class="quiz-options">
+<button class="quiz-opt" onclick="answerQ('q7-5',this,false)"><span class="opt-letter">A</span>No concern. Cash giveaways are straightforward and well-received on Reddit.</button>
+<button class="quiz-opt" onclick="answerQ('q7-5',this,false)"><span class="opt-letter">B</span>The concern is that cash giveaways attract low-quality entries from users with no genuine interest in the brand.</button>
+<button class="quiz-opt" onclick="answerQ('q7-5',this,true)"><span class="opt-letter">C</span>Cash giveaways in financial services may trigger regulatory requirements, and running them with no geographic restrictions can violate contest laws that vary by country and US state. Legal review is required before proceeding.</button>
+<button class="quiz-opt" onclick="answerQ('q7-5',this,false)"><span class="opt-letter">D</span>The concern is only reputational. Cash giveaways feel impersonal compared to product prizes.</button>
+</div>
+<div class="quiz-explanation" id="q7-5-exp">Contest and giveaway laws vary significantly by jurisdiction. In the US, some states have specific sweepstakes regulations. A financial services client running a cash giveaway adds an additional layer of regulatory exposure. Before any cash or high-value giveaway goes live, especially one with no geographic restrictions, legal review is required. This is not optional regardless of how the contest is structured.</div>
+</div>
+  <div class="btn-row">
+    <button class="btn primary" id="m7-next" onclick="completeModule(7)" style="display:none">Finish training</button>
+    <button class="btn" onclick="completeModule(7)">Mark complete and finish</button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// =============================================
+// SLACK CONFIGURATION
+// 1. Go to api.slack.com/apps
+// 2. Create an app, enable Incoming Webhooks
+// 3. Add it to the channel where you want completion alerts
+// 4. Copy the webhook URL and paste it below
+// =============================================
+const SLACK_WEBHOOK_URL = 'YOUR_SLACK_WEBHOOK_URL_HERE';
+
+let userName = '';
+const TOTAL_MODULES = 7;
+const completed = new Set();
+const moduleScores = {};
+const quizCorrect = {};
+
+const quizSequences = {
+  1: ['q1-1','q1-2','q1-3','q1-4','q1-5'],
+  2: ['q2-1','q2-2','q2-3','q2-4','q2-5'],
+  3: ['q3-1','q3-2','q3-3','q3-4','q3-5'],
+  4: ['q4-1','q4-2','q4-3','q4-4','q4-5'],
+  5: ['q5-1','q5-2','q5-3','q5-4','q5-5'],
+  6: ['q6-1','q6-2','q6-3','q6-4','q6-5'],
+  7: ['q7-1','q7-2','q7-3','q7-4','q7-5']
+};
+
+function getModuleForQ(qid) {
+  for (const [mod, qs] of Object.entries(quizSequences)) {
+    if (qs.includes(qid)) return parseInt(mod);
+  }
+  return null;
+}
+
+function startTraining() {
+  const val = document.getElementById('name-input').value.trim();
+  if (!val) { document.getElementById('name-input').focus(); return; }
+  userName = val;
+  document.getElementById('name-gate').style.display = 'none';
+  document.getElementById('sidebar-user').textContent = userName;
+}
+
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startTraining();
+});
+
+function showModule(n) {
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('module-' + n).classList.add('active');
+  document.getElementById('nav-' + n).classList.add('active');
+  window.scrollTo(0, 0);
+  updateDashboard();
+}
+
+function completeModule(n) {
+  const seq = quizSequences[n];
+  const correct = quizCorrect[n] || 0;
+  const total = seq ? seq.length : 0;
+  moduleScores[n] = { correct, total };
+  completed.add(n);
+
+  const navNum = document.getElementById('navnum-' + n);
+  navNum.textContent = '\u2713';
+  navNum.style.background = '#1a7a3c';
+  navNum.style.color = 'white';
+  document.getElementById('nav-' + n).classList.add('completed');
+
+  updateProgress();
+  updateDashboard();
+
+  if (completed.size === TOTAL_MODULES) {
+    sendSlackNotification();
+    showModule(0);
+  } else if (n < TOTAL_MODULES) {
+    showModule(n + 1);
+  } else {
+    showModule(0);
+  }
+}
+
+function updateProgress() {
+  const pct = Math.round((completed.size / TOTAL_MODULES) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = completed.size + ' / ' + TOTAL_MODULES + ' complete';
+}
+
+function updateDashboard() {
+  const names = ['Branded Reddit 101','AMA Mastery','Brand Voice','Subreddit Management','Pinned FAQ & Wiki','Reputation & Crisis','Contests & Giveaways'];
+  const grid = document.getElementById('dash-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  names.forEach((name, i) => {
+    const n = i + 1;
+    const isDone = completed.has(n);
+    const card = document.createElement('div');
+    card.className = 'dash-card ' + (isDone ? 'done' : '');
+    card.onclick = () => showModule(n);
+    const s = isDone && moduleScores[n] ? moduleScores[n].correct + '/' + moduleScores[n].total + ' correct' : 'Not started';
+    card.innerHTML = '<div class="dash-num">Module ' + n + '</div><div class="dash-name">' + name + '</div><div class="dash-status ' + (isDone ? 'done' : 'todo') + '">' + (isDone ? '\u2713 ' + s : s) + '</div>';
+    grid.appendChild(card);
+  });
+
+  if (completed.size === TOTAL_MODULES) {
+    if (!document.getElementById('completion-summary')) {
+      const summary = document.createElement('div');
+      summary.id = 'completion-summary';
+      summary.className = 'card';
+      summary.style.borderColor = 'rgba(62,207,110,0.3)';
+      summary.innerHTML = buildScoreSummaryHTML();
+      const dashGrid = document.getElementById('dash-grid');
+      dashGrid.parentNode.insertBefore(summary, dashGrid.nextSibling);
+    }
+  }
+}
+
+function buildScoreSummaryHTML() {
+  const moduleNames = ['Branded Reddit 101','AMA Mastery','Brand Voice','Subreddit Management','Pinned FAQ & Wiki','Reputation & Crisis','Contests & Giveaways'];
+  let totalCorrect = 0, totalQs = 0;
+  let rows = '';
+  for (let n = 1; n <= 7; n++) {
+    const s = moduleScores[n] || { correct: 0, total: 5 };
+    totalCorrect += s.correct;
+    totalQs += s.total;
+    const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
+    const cls = pct === 100 ? 'perfect' : pct >= 60 ? 'good' : 'needs-work';
+    rows += '<div class="score-row"><span>' + moduleNames[n-1] + '</span><span class="score-val ' + cls + '">' + s.correct + '/' + s.total + '</span></div>';
+  }
+  const overallPct = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
+  const cls2 = overallPct >= 90 ? 'perfect' : overallPct >= 60 ? 'good' : 'needs-work';
+  return '<div class="card-title" style="color:var(--green);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Training complete</div>' +
+    '<p style="font-size:13.5px;color:var(--text3);margin-bottom:16px;">All 7 modules finished. Score breakdown below.</p>' +
+    '<div class="score-row" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3)"><span>Module</span><span>Score</span></div>' +
+    rows +
+    '<div class="score-row" style="font-weight:600;border-top:2px solid var(--border);margin-top:4px;"><span>Overall</span><span class="score-val ' + cls2 + '">' + totalCorrect + '/' + totalQs + ' (' + overallPct + '%)</span></div>';
+}
+
+async function sendSlackNotification() {
+  if (!SLACK_WEBHOOK_URL || SLACK_WEBHOOK_URL === 'YOUR_SLACK_WEBHOOK_URL_HERE') {
+    console.log('Slack webhook not configured. Skipping notification.');
+    return;
+  }
+  const moduleNames = ['Branded Reddit 101','AMA Mastery','Brand Voice','Subreddit Management','Pinned FAQ & Wiki','Reputation & Crisis','Contests & Giveaways'];
+  let totalCorrect = 0, totalQs = 0, scoreLines = '';
+  for (let n = 1; n <= 7; n++) {
+    const s = moduleScores[n] || { correct: 0, total: 5 };
+    totalCorrect += s.correct;
+    totalQs += s.total;
+    const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
+    scoreLines += '\n  Module ' + n + ': ' + moduleNames[n-1] + ' - ' + s.correct + '/' + s.total + ' (' + pct + '%)';
+  }
+  const overall = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
+  const completedAt = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const message = {
+    text: '*Branded Reddit Training: Completion Report*\n\n*Name:* ' + userName + '\n*Completed:* ' + completedAt + '\n\n*Scores by module:*' + scoreLines + '\n\n*Overall: ' + totalCorrect + '/' + totalQs + ' (' + overall + '%)*'
+  };
+  try {
+    await fetch(SLACK_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(message)
+    });
+  } catch(e) {
+    console.log('Slack notification failed:', e);
+  }
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  el.textContent = el.classList.contains('checked') ? '\u2713' : '';
+}
+
+function answerQ(qid, btn, isCorrect) {
+  const wrap = document.getElementById(qid + '-wrap');
+  const btns = wrap.querySelectorAll('.quiz-opt');
+  btns.forEach(b => { b.disabled = true; b.onclick = null; });
+  const exp = document.getElementById(qid + '-exp');
+  const mod = getModuleForQ(qid);
+  if (!quizCorrect[mod]) quizCorrect[mod] = 0;
+  if (isCorrect) {
+    btn.classList.add('correct');
+    quizCorrect[mod]++;
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b => {
+      const oc = b.getAttribute('onclick') || '';
+      if (b !== btn && oc.includes('true')) b.classList.add('reveal');
+    });
+  }
+  if (exp) exp.style.display = 'block';
+  const seq = quizSequences[mod];
+  const idx = seq.indexOf(qid);
+  if (idx < seq.length - 1) {
+    setTimeout(() => {
+      const nextWrap = document.getElementById(seq[idx+1] + '-wrap');
+      if (nextWrap) nextWrap.style.display = 'block';
+    }, 500);
+  } else {
+    setTimeout(() => {
+      const nextBtn = document.getElementById('m' + mod + '-next');
+      if (nextBtn) nextBtn.style.display = 'inline-flex';
+    }, 500);
+  }
+}
+
+async function submitFreeForm(inputId, feedbackId, type) {
+  const val = document.getElementById(inputId).value.trim();
+  const fb = document.getElementById(feedbackId);
+  if (!val || val.length < 20) {
+    fb.style.display = 'block';
+    fb.className = 'ai-feedback loading';
+    fb.textContent = 'Please write a more complete response before submitting.';
+    return;
+  }
+  fb.style.display = 'block';
+  fb.className = 'ai-feedback loading';
+  fb.textContent = 'Evaluating your response...';
+
+  const prompts = {
+    ama: `You are a senior Reddit marketing strategist at a digital agency training junior team members on branded Reddit best practices. A team member is doing an AMA simulation. The scenario: they are managing an AMA for a founder and a skeptical user with 847 upvotes asked: "What's the biggest product decision you've made that you'd reverse if you could, and why didn't you catch it earlier?"\n\nThe team member wrote this response on behalf of the founder: "${val}"\n\nEvaluate in 3 to 4 sentences. Be direct and specific. Cover: (1) tone: does it sound like a real human founder or like corporate copy? (2) substance: does it actually answer the question with real vulnerability or does it dodge? (3) one specific thing to improve or one thing they did particularly well. Start with a 2 to 3 word assessment like "Strong response.", "Needs more honesty.", "Good instinct, but..." Do not use bullet points. Do not use em dashes.`,
+
+    reputation: `You are a senior Reddit marketing strategist training junior team members on branded reputation management. A team member is practicing responding to a negative Reddit thread. The scenario: a post says a customer of 4 years switched away after a 60% price increase with 2 weeks notice, no grandfathering, no explanation beyond "market adjustment." Support copy-pasted the pricing page at them. The post has 312 upvotes.\n\nThe team member wrote this brand response: "${val}"\n\nEvaluate in 3 to 4 sentences. Be direct and specific. Cover: (1) does the response acknowledge the real emotional weight of the complaint or does it skip straight to defense? (2) does it avoid the three biggest traps: defensiveness, corporate-speak, and empty promises? (3) one concrete improvement. Start with a 2 to 3 word assessment like "Solid approach.", "Too defensive.", "Missing the empathy beat." Do not use bullet points. Do not use em dashes.`
+  };
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompts[type] }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content && data.content[0] ? data.content[0].text : 'Could not generate feedback. Please try again.';
+    fb.className = 'ai-feedback done';
+    fb.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">AI Feedback</div><div style="font-size:14px;line-height:1.7;">' + text.replace(/\n/g, '<br>') + '</div>';
+    const mod = type === 'ama' ? 2 : 6;
+    const nextBtn = document.getElementById('m' + mod + '-next');
+    if (nextBtn) nextBtn.style.display = 'inline-flex';
+  } catch(e) {
+    fb.className = 'ai-feedback done';
+    fb.innerHTML = '<div style="font-size:14px;color:var(--red);">Could not connect to feedback engine. Check your connection and try again.</div>';
+  }
+}
+
+// =============================================
+// THEME TOGGLE
+// =============================================
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') !== 'light';
+  if (isDark) {
+    html.setAttribute('data-theme', 'light');
+    document.getElementById('theme-icon').textContent = '☽';
+    document.getElementById('theme-label').textContent = 'Dark mode';
+    localStorage.setItem('sg-theme', 'light');
+  } else {
+    html.removeAttribute('data-theme');
+    document.getElementById('theme-icon').innerHTML = '&#9788;';
+    document.getElementById('theme-label').textContent = 'Light mode';
+    localStorage.setItem('sg-theme', 'dark');
+  }
+}
+// Restore saved theme
+(function() {
+  const saved = localStorage.getItem('sg-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    const icon = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon) icon.textContent = '☽';
+    if (label) label.textContent = 'Dark mode';
+  }
+})();
+
+updateDashboard();
+</script>
+</body>
+</html>
